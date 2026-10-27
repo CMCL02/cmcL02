@@ -1,0 +1,3018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cmcL02</title>
+<style>
+/* ===========================================
+   药理学学习地图 — 样式（改这里可以换配色/字号）
+   =========================================== */
+
+:root{
+  --bg:#f6f7f9;
+  --panel:#ffffff;
+  --panel-2:#fbfcfd;
+  --text:#1b2430;
+  --text-2:#5b6775;
+  --text-3:#8b97a5;
+  --line:#e5e9ee;
+  --line-2:#eef1f5;
+  --accent:#0d7a6f;        /* 主色：青绿 */
+  --accent-soft:#e6f4f1;
+  --accent-2:#2f6dd0;      /* 次色：蓝 */
+  --warn:#b45309;
+  --warn-soft:#fdf5e6;
+  --ok:#15803d;
+  --ok-soft:#eaf7ee;
+  --radius:12px;
+  --sidebar-w:290px;
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 24px -18px rgba(16,24,40,.18);
+}
+html[data-theme="dark"]{
+  --bg:#12161c;
+  --panel:#181e26;
+  --panel-2:#1b222b;
+  --text:#e7edf4;
+  --text-2:#a8b6c6;
+  --text-3:#7b8998;
+  --line:#2a333e;
+  --line-2:#232b35;
+  --accent:#4fd1bd;
+  --accent-soft:#173029;
+  --accent-2:#7aa7e8;
+  --warn:#f0b429;
+  --warn-soft:#2c2517;
+  --ok:#5fd68a;
+  --ok-soft:#17281c;
+  --shadow:none;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font:15px/1.75 "PingFang SC","Microsoft YaHei","Hiragino Sans GB","Source Han Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent-2);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:inherit}
+
+.app{display:flex;min-height:100vh}
+
+/* ---------------- 侧边栏 ---------------- */
+.sidebar{
+  width:var(--sidebar-w);flex:0 0 var(--sidebar-w);
+  background:var(--panel);
+  border-right:1px solid var(--line);
+  position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;
+  z-index:30;
+}
+.brand{display:flex;gap:10px;align-items:center;padding:18px 18px 10px}
+.brand-mark{
+  width:34px;height:34px;flex:0 0 34px;border-radius:10px;
+  background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-weight:700;font-size:17px;
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.3}
+.brand-text strong{font-size:15px}
+.brand-text span{font-size:12px;color:var(--text-3)}
+
+.search-box{padding:6px 14px 8px;position:relative}
+.search-box input{
+  width:100%;padding:9px 12px;border-radius:9px;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+  font-size:13px;outline:none;
+}
+.search-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search-results{
+  position:absolute;left:14px;right:14px;top:46px;max-height:62vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 12px 30px -12px rgba(16,24,40,.3);padding:6px;z-index:50;
+}
+.search-results .sr-item{display:block;padding:7px 9px;border-radius:7px;cursor:pointer}
+.search-results .sr-item:hover{background:var(--accent-soft);text-decoration:none}
+.search-results .sr-item b{display:block;font-size:13px;color:var(--text);font-weight:600}
+.search-results .sr-item span{font-size:11.5px;color:var(--text-3)}
+.search-results .sr-empty{padding:10px;font-size:12.5px;color:var(--text-3)}
+
+.tree{flex:1;overflow-y:auto;padding:4px 10px 20px}
+.tree-ch{margin-bottom:2px}
+.tree-ch > button{
+  width:100%;display:flex;align-items:center;gap:8px;
+  background:none;border:0;padding:9px 8px;border-radius:8px;
+  color:var(--text);font-size:13.5px;font-weight:600;text-align:left;cursor:pointer;
+}
+.tree-ch > button:hover{background:var(--panel-2)}
+.tree-ch.open > button .caret{transform:rotate(90deg)}
+.caret{font-size:10px;color:var(--text-3);transition:transform .15s;display:inline-block}
+.ch-no{
+  font-size:10.5px;font-weight:700;color:var(--accent);
+  background:var(--accent-soft);border-radius:5px;padding:1px 5px;
+}
+.tree-sec{padding:2px 0 2px 14px}
+.tree-sec > .sec-label{
+  font-size:11.5px;color:var(--text-3);padding:7px 8px 3px;
+  letter-spacing:.03em;
+}
+.tree-topic{
+  display:flex;align-items:center;gap:6px;
+  padding:5.5px 8px;border-radius:7px;font-size:13px;color:var(--text-2);
+  cursor:pointer;line-height:1.45;
+}
+.tree-topic:hover{background:var(--panel-2);color:var(--text);text-decoration:none}
+.tree-topic.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.tree-topic .dot{
+  width:5px;height:5px;flex:0 0 5px;border-radius:50%;background:var(--line);
+}
+.tree-topic.active .dot{background:var(--accent)}
+.tree-topic.done .dot{background:var(--ok)}
+.tree-hidden{display:none}
+
+.sidebar-foot{
+  border-top:1px solid var(--line);padding:10px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;
+}
+.ghost-btn{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--text-2);
+  padding:7px 4px;border-radius:8px;font-size:12px;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ghost-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---------------- 主区 ---------------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:12px;
+  padding:11px 26px;border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--panel) 88%,transparent);
+  backdrop-filter:blur(8px);
+}
+.icon-btn{
+  display:none;background:none;border:1px solid var(--line);color:var(--text);
+  border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:15px;
+}
+.crumb{flex:1;min-width:0;font-size:12.5px;color:var(--text-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb b{color:var(--text-2);font-weight:500}
+.progress-mini{font-size:12px;color:var(--text-3);white-space:nowrap}
+.progress-mini .bar{
+  display:inline-block;width:74px;height:5px;border-radius:3px;
+  background:var(--line);vertical-align:middle;margin-left:7px;overflow:hidden;position:relative;
+}
+.progress-mini .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+
+.article{max-width:920px;width:100%;margin:0 auto;padding:30px 26px 90px}
+
+/* ---------------- 首页 ---------------- */
+.hero{margin-bottom:26px}
+.hero h1{font-size:27px;line-height:1.35;margin:0 0 10px;letter-spacing:-.01em}
+.hero p{margin:0;color:var(--text-2);font-size:14.5px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 26px}
+.stat{
+  flex:1 1 120px;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:13px 15px;box-shadow:var(--shadow);
+}
+.stat b{display:block;font-size:23px;line-height:1.2;letter-spacing:-.02em}
+.stat span{font-size:11.5px;color:var(--text-3)}
+
+.stack-label{
+  font-size:12px;color:var(--text-3);letter-spacing:.08em;
+  margin:26px 0 12px;text-transform:uppercase;
+}
+.flow{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--panel-2);border:1px dashed var(--line);
+  border-radius:var(--radius);padding:12px 14px;font-size:13px;color:var(--text-2);
+}
+.flow em{font-style:normal;color:var(--accent-2);font-weight:600}
+.flow .arrow{color:var(--text-3)}
+
+.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:720px){.ch-grid{grid-template-columns:1fr}}
+.ch-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:17px 18px;box-shadow:var(--shadow);cursor:pointer;
+  transition:border-color .15s, transform .15s;
+}
+.ch-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.ch-card .ch-head{display:flex;align-items:baseline;gap:9px;margin-bottom:4px}
+.ch-card h3{margin:0;font-size:16px}
+.ch-card .ch-sub{font-size:12.5px;color:var(--text-3);margin:0 0 10px}
+.ch-card .ch-secs{display:flex;flex-wrap:wrap;gap:6px}
+.ch-card .chip{
+  font-size:11.5px;color:var(--text-2);background:var(--panel-2);
+  border:1px solid var(--line-2);border-radius:999px;padding:2px 9px;
+}
+.ch-card .ch-meta{margin-top:11px;font-size:11.5px;color:var(--text-3);
+  display:flex;justify-content:space-between;align-items:center}
+.ch-card .ch-meta .go{color:var(--accent);font-weight:600}
+
+/* ---------------- 章页 / 卡片列表 ---------------- */
+.page-head{margin-bottom:22px}
+.page-head .kicker{font-size:12px;color:var(--accent);letter-spacing:.1em;font-weight:700}
+.page-head h1{font-size:24px;margin:6px 0 8px;line-height:1.35}
+.page-head p{margin:0;color:var(--text-2);font-size:14px}
+
+.sec-block{margin-bottom:28px}
+.sec-block > h2{
+  font-size:13px;color:var(--text-3);font-weight:600;letter-spacing:.05em;
+  margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--line-2);
+}
+.topic-card{
+  display:block;background:var(--panel);border:1px solid var(--line);
+  border-radius:11px;padding:13px 16px;margin-bottom:9px;cursor:pointer;
+  box-shadow:var(--shadow);
+}
+.topic-card:hover{border-color:var(--accent);text-decoration:none}
+.topic-card .tc-top{display:flex;gap:9px;align-items:baseline}
+.topic-card .tc-idx{font-size:11px;color:var(--text-3);min-width:16px}
+.topic-card h4{margin:0;font-size:15px;color:var(--text)}
+.topic-card .tc-sub{font-size:12.5px;color:var(--text-3);margin:3px 0 0 25px}
+.topic-card .tc-key{
+  font-size:13px;color:var(--text-2);margin:7px 0 0 25px;
+  padding-left:10px;border-left:2px solid var(--accent-soft);
+}
+.topic-card.done{border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+
+/* ---------------- 知识点页 ---------------- */
+.topic-head{padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.topic-head .kicker{font-size:12px;color:var(--text-3)}
+.topic-head h1{font-size:25px;margin:7px 0 6px;line-height:1.35;letter-spacing:-.01em}
+.topic-head .sub{color:var(--text-2);font-size:14px;margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{
+  font-size:11.5px;background:var(--accent-soft);color:var(--accent);
+  border-radius:6px;padding:2px 8px;cursor:default;
+}
+.topic-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.act-btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--text-2);
+  padding:6px 13px;border-radius:8px;font-size:12.5px;cursor:pointer;
+}
+.act-btn:hover{border-color:var(--accent);color:var(--accent)}
+.act-btn.on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}
+
+/* 阅读区排版 */
+.md h2{
+  font-size:17px;margin:30px 0 12px;padding-left:11px;
+  border-left:3px solid var(--accent);line-height:1.5;
+}
+.md h3{font-size:15px;margin:20px 0 8px;color:var(--text)}
+.md p{margin:9px 0}
+.md ul,.md ol{margin:9px 0;padding-left:22px}
+.md li{margin:4px 0}
+.md li::marker{color:var(--accent)}
+.md strong{font-weight:700}
+.md em{font-style:normal;color:var(--accent-2)}
+.md mark{background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:0 3px;font-weight:600}
+.md code{
+  background:var(--panel-2);border:1px solid var(--line-2);border-radius:4px;
+  padding:1px 5px;font-size:12.5px;font-family:ui-monospace,Consolas,monospace;
+}
+.md a.tlink{
+  border-bottom:1px dashed var(--accent-2);color:var(--accent-2);
+  padding-bottom:1px;
+}
+.md hr{border:0;border-top:1px dashed var(--line);margin:24px 0}
+.md pre{
+  margin:12px 0;padding:12px 15px;background:var(--panel-2);
+  border:1px solid var(--line-2);border-left:3px solid var(--accent);
+  border-radius:8px;overflow-x:auto;
+}
+.md pre code{
+  background:none;border:0;padding:0;font-size:13px;line-height:1.9;
+  font-family:ui-monospace,Consolas,"Cascadia Mono",monospace;white-space:pre;
+}
+.md blockquote{
+  margin:13px 0;padding:11px 15px;background:var(--panel-2);
+  border-left:3px solid var(--accent-2);border-radius:0 8px 8px 0;
+  color:var(--text-2);font-size:14px;
+}
+.md blockquote p{margin:4px 0}
+.md blockquote.tip{background:var(--warn-soft);border-left-color:var(--warn)}
+.md .tbl{
+  margin:14px 0;border:1px solid var(--line);border-radius:8px;background:var(--panel);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.md table{
+  width:100%;border-collapse:collapse;font-size:13.5px;
+}
+@media (max-width:720px){.md .tbl table{min-width:560px}}
+.md table th,.md table td{
+  border-bottom:1px solid var(--line-2);padding:8px 11px;text-align:left;vertical-align:top;
+}
+.md table th{background:var(--panel-2);font-weight:600;font-size:12.5px;color:var(--text-2);white-space:nowrap}
+.md table tr:last-child td{border-bottom:0}
+.md details{
+  margin:10px 0;border:1px solid var(--line);border-radius:9px;background:var(--panel);
+  padding:10px 14px;
+}
+.md details summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text)}
+.md details summary::marker{color:var(--accent)}
+.md details[open] summary{margin-bottom:7px;padding-bottom:7px;border-bottom:1px dashed var(--line-2)}
+.md details .ans{font-size:13.5px;color:var(--text-2)}
+.md details .ans p{margin:5px 0}
+
+.pager{display:flex;gap:10px;margin-top:34px;padding-top:18px;border-top:1px solid var(--line)}
+.pager a{
+  flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:11px 14px;font-size:13px;color:var(--text-2);box-shadow:var(--shadow);
+}
+.pager a:hover{border-color:var(--accent);text-decoration:none;color:var(--accent)}
+.pager a span{display:block;font-size:11px;color:var(--text-3);margin-bottom:2px}
+.pager a.next{text-align:right}
+
+/* ---------------- 闪卡 ---------------- */
+.card-stage{
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:34px 26px;min-height:210px;display:flex;flex-direction:column;
+  justify-content:center;box-shadow:var(--shadow);margin-bottom:16px;
+}
+.card-stage .q{font-size:17px;line-height:1.7;font-weight:600}
+.card-stage .a{
+  margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);
+  font-size:14.5px;color:var(--text-2);
+}
+.card-stage .a.hidden{display:none}
+.card-stage .src{margin-top:14px;font-size:11.5px;color:var(--text-3)}
+.card-bar{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.card-bar .act-btn{padding:8px 16px}
+
+/* ---------------- 杂项 ---------------- */
+.empty{padding:40px 0;text-align:center;color:var(--text-3);font-size:13.5px}
+.toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(10px);
+  background:var(--text);color:var(--bg);font-size:12.5px;padding:8px 16px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:.2s;z-index:99;
+}
+.toast.show{opacity:.94;transform:translateX(-50%) translateY(0)}
+kbd{
+  background:var(--panel-2);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:4px;padding:0 5px;font-size:11.5px;font-family:inherit;
+}
+
+/* 移动端 */
+@media (max-width:940px){
+  .sidebar{
+    position:fixed;left:0;top:0;transform:translateX(-100%);
+    transition:transform .22s;box-shadow:0 0 40px rgba(0,0,0,.2);
+  }
+  body.nav-open .sidebar{transform:translateX(0)}
+  body.nav-open::after{
+    content:"";position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:25;
+  }
+  .icon-btn{display:block}
+  .topbar{padding:10px 16px}
+  .article{padding:22px 16px 80px}
+  .hero h1{font-size:22px}
+}
+
+/* 手机竖屏（≤560px）再收一档 */
+@media (max-width:560px){
+  .article{padding:18px 14px 72px}
+  .hero h1{font-size:20px}
+  .hero p{font-size:13.5px}
+  .stats{gap:8px}
+  .stat{flex:1 1 calc(50% - 4px);padding:11px 13px}
+  .stat b{font-size:20px}
+  .flow{font-size:12.5px;padding:10px 12px}
+  .progress-mini .bar{display:none}
+  .ch-grid{gap:10px}
+  .ch-card{padding:14px 15px}
+  .topic-head h1{font-size:21px}
+  .md h2{font-size:16px;margin:20px 0 8px}
+  .md table{font-size:12.5px}
+  .md table th,.md table td{padding:6px 8px}
+  .card-stage{padding:16px}
+  .pager a.next{display:block;text-align:left}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <!-- 网站名字由 data/manifest.js 的 site 字段决定，这里只是默认字样 -->
+    <div class="brand">
+      <div class="brand-mark" id="brandMark">C</div>
+      <div class="brand-text">
+        <strong id="brandName">cmcL02</strong>
+        <span id="brandSub">框架 → 细分 → 自测</span>
+      </div>
+    </div>
+
+    <div class="search-box">
+      <input id="searchInput" type="search" placeholder="搜索药名 / 概念   按 /" autocomplete="off">
+      <div class="search-results" id="searchResults" hidden></div>
+    </div>
+
+    <nav class="tree" id="tree"></nav>
+
+    <div class="sidebar-foot">
+      <button class="ghost-btn" id="btnCards">闪卡自测</button>
+      <button class="ghost-btn" id="btnHelp">如何增改</button>
+      <button class="ghost-btn" id="btnTheme">深浅色</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="icon-btn" id="btnMenu" aria-label="目录">☰</button>
+      <div class="crumb" id="crumb"></div>
+      <div class="progress-mini" id="progressMini"></div>
+    </div>
+    <article class="article" id="article"></article>
+  </main>
+
+</div>
+
+<script>
+/* ============================================================
+   md.js —— 极简 markdown 渲染器（不依赖任何外部库）
+   支持：## / ### 标题、- 列表、1. 有序列表、表格、
+        > 引用（口诀自动高亮）、--- 分隔线、**粗体**、
+        `代码`、==高亮==、[[知识点id|文字]] 内链、
+        :::quiz 题干 / 答案 / ::: （折叠自测）
+   ============================================================ */
+(function () {
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ---------- 行内 ----------
+  function inline(s) {
+    s = esc(s);
+    var codes = [];
+    s = s.replace(/`([^`]+)`/g, function (_, c) {
+      codes.push(c);
+      return '\u0000' + (codes.length - 1) + '\u0000';
+    });
+    // 内部链接 [[topic-id]] 或 [[topic-id|显示文字]]
+    s = s.replace(/\[\[([^\[\]|]+)(?:\|([^\[\]]+))?\]\]/g, function (_, id, label) {
+      var t = id.trim();
+      return '<a class="tlink" href="#/t/' + t + '">' + (label ? label.trim() : t) + '</a>';
+    });
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+    s = s.replace(/\u0000(\d+)\u0000/g, function (_, i) {
+      return '<code>' + codes[+i] + '</code>';
+    });
+    return s;
+  }
+
+  function isTableSep(line) {
+    return /^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(line) && line.indexOf('-') > -1;
+  }
+
+  function splitRow(line) {
+    var s = line.trim();
+    if (s.charAt(0) === '|') s = s.slice(1);
+    if (s.charAt(s.length - 1) === '|') s = s.slice(0, -1);
+    // 保护 [[id|文字]] 内部的竖线，避免被当成单元格分隔符
+    var links = [];
+    s = s.replace(/\[\[[^\]]+\]\]/g, function (m) {
+      links.push(m);
+      return '\u0001' + (links.length - 1) + '\u0001';
+    });
+    return s.split('|').map(function (c) {
+      return c.trim().replace(/\u0001(\d+)\u0001/g, function (_, i) {
+        return links[+i];
+      });
+    });
+  }
+
+  var BLOCK_START = /^(#{2,3}\s|[-*]\s|\d+\.\s|\||>\s?|---+\s*$|:::quiz|```)/;
+
+  // ---------- 主渲染 ----------
+  function render(src) {
+    var lines = String(src == null ? '' : src).replace(/\r\n?/g, '\n').split('\n');
+    var out = [];
+    var i = 0;
+
+    while (i < lines.length) {
+      var line = lines[i];
+      var t = line.trim();
+
+      if (t === '') { i++; continue; }
+
+      // :::quiz 题干
+      if (/^:::quiz/.test(t)) {
+        var q = t.replace(/^:::quiz\s*/, '');
+        var ans = [];
+        i++;
+        while (i < lines.length && lines[i].trim() !== ':::') { ans.push(lines[i]); i++; }
+        i++; // 跳过 :::
+        out.push(
+          '<details><summary>' + inline(q) + '</summary><div class="ans">' +
+          render(ans.join('\n')) + '</div></details>'
+        );
+        continue;
+      }
+
+      // 代码块（公式常用）
+      if (/^```/.test(t)) {
+        var cb = [];
+        i++;
+        while (i < lines.length && !/^```/.test(lines[i].trim())) { cb.push(lines[i]); i++; }
+        i++;
+        out.push('<pre><code>' + esc(cb.join('\n')) + '</code></pre>');
+        continue;
+      }
+
+      // 标题
+      if (/^###\s/.test(t)) { out.push('<h3>' + inline(t.slice(4)) + '</h3>'); i++; continue; }
+      if (/^##\s/.test(t)) {
+        out.push('<h2>' + inline(t.replace(/^##\s+/, '')) + '</h2>');
+        i++; continue;
+      }
+
+      // 分隔线
+      if (/^---+\s*$/.test(t)) { out.push('<hr>'); i++; continue; }
+
+      // 表格
+      if (t.charAt(0) === '|' && i + 1 < lines.length && isTableSep(lines[i + 1])) {
+        var head = splitRow(t);
+        i += 2;
+        var body = [];
+        while (i < lines.length && lines[i].trim().charAt(0) === '|') {
+          body.push(splitRow(lines[i]));
+          i++;
+        }
+        var h = '<table><thead><tr>' + head.map(function (c) {
+          return '<th>' + inline(c) + '</th>';
+        }).join('') + '</tr></thead><tbody>';
+        h += body.map(function (r) {
+          return '<tr>' + head.map(function (_, k) {
+            return '<td>' + inline(r[k] == null ? '' : r[k]) + '</td>';
+          }).join('') + '</tr>';
+        }).join('');
+        out.push('<div class="tbl">' + h + '</tbody></table></div>');
+        continue;
+      }
+
+      // 引用
+      if (/^>/.test(t)) {
+        var buf = [];
+        while (i < lines.length && /^>/.test(lines[i].trim())) {
+          buf.push(lines[i].trim().replace(/^>\s?/, ''));
+          i++;
+        }
+        var raw = buf.join(' ');
+        var cls = /口诀|速记|记忆|一句话|重点/.test(raw) ? ' class="tip"' : '';
+        out.push('<blockquote' + cls + '>' + render(buf.join('\n')) + '</blockquote>');
+        continue;
+      }
+
+      // 无序列表
+      if (/^[-*]\s/.test(t)) {
+        var ul = [];
+        while (i < lines.length && /^[-*]\s/.test(lines[i].trim())) {
+          ul.push(lines[i].trim().replace(/^[-*]\s+/, ''));
+          i++;
+        }
+        out.push('<ul>' + ul.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ul>');
+        continue;
+      }
+
+      // 有序列表
+      if (/^\d+\.\s/.test(t)) {
+        var ol = [];
+        while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
+          ol.push(lines[i].trim().replace(/^\d+\.\s+/, ''));
+          i++;
+        }
+        out.push('<ol>' + ol.map(function (x) { return '<li>' + inline(x) + '</li>'; }).join('') + '</ol>');
+        continue;
+      }
+
+      // 段落
+      var para = [];
+      while (i < lines.length && lines[i].trim() !== '' && !(para.length && BLOCK_START.test(lines[i].trim()))) {
+        para.push(lines[i].trim());
+        i++;
+      }
+      out.push('<p>' + inline(para.join(' ')) + '</p>');
+    }
+    return out.join('\n');
+  }
+
+  // ---------- 抽取自测题（用于闪卡） ----------
+  function extractQuizzes(src) {
+    var res = [];
+    var re = /^:::quiz\s*([^\n]*)\n([\s\S]*?)\n:::\s*$/gm;
+    var m;
+    while ((m = re.exec(String(src || '').replace(/\r\n?/g, '\n')))) {
+      res.push({ q: m[1].trim(), a: m[2].trim() });
+    }
+    return res;
+  }
+
+  // ---------- 纯文本（用于搜索索引/摘要） ----------
+  function plain(src) {
+    return String(src || '')
+      .replace(/^:::quiz\s*/gm, '')
+      .replace(/^:::\s*$/gm, '')
+      .replace(/\[\[([^\[\]|]+)\|([^\[\]]+)\]\]/g, '$2')
+      .replace(/\[\[([^\[\]]+)\]\]/g, '$1')
+      .replace(/[#>*`|=]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  window.MD = { render: render, inline: inline, extractQuizzes: extractQuizzes, plain: plain };
+})();
+
+</script>
+<script>
+/* ============================================================
+   manifest.js —— 站点注册表 + 网站名字（改名只改下面这一处）
+   新增章节时：在 index.html 里加一行 <script>，刷新即可。
+   顺序由各章文件里的 order 字段决定（1、2、3…）。
+   ============================================================ */
+window.PHARM = {
+
+  /* ---------- 网站名字：改这里，全站生效 ---------- */
+  site: {
+    name: 'cmcL02',                    // 侧边栏标题 + 浏览器标签页标题
+    mark: 'C',                         // 侧边栏左上角方块里的字（1 个字最好看）
+    sub: '框架 → 细分 → 自测',          // 标题下面那行小字
+    hero: 'cmcL02'                     // 首页大标题
+  },
+
+  chapters: [],
+  registerChapter: function (ch) {
+    this.chapters.push(ch);
+  }
+};
+
+</script>
+
+<!-- ===== 章节内容：新增一章时，在这里加一行 script（见「如何增改」） ===== -->
+<script>
+/* ============================================================
+   第 1 章 · 总论（一）药效学 —— 药物如何作用于机体
+   来源课件：1 药理学总论（一）线下课件-伍.ppt（54 页）
+   ============================================================ */
+PHARM.registerChapter({
+  id: "ch1",
+  order: 1,
+  no: "01",
+  title: "总论 · 药效学",
+  subtitle: "药物如何作用于机体（PD）",
+  intro: "这一章是全书的地基：先弄清药物作用的定义与两重性，再用量效关系把「强度」量化，最后用受体理论解释「为什么有效」。后面所有具体药物，都是这三件事的重复。",
+  topics: [
+
+  {
+    id: "ch1-intro",
+    section: "绪论",
+    title: "药理学在研究什么",
+    subtitle: "药物 · 药理学 · 药效学 PD / 药动学 PK",
+    tags: ["PD", "PK", "药物定义", "绪论"],
+    key: "PD 是「药→体」，PK 是「体→药」；后面 4 章都是在这两条线上填药物。",
+    md: `## 一句话
+药理学 = 研究**药物与机体相互作用规律**的学科。把这句话从中间切开，就是全书的两半：药物对机体（PD）、机体对药物（PK）。
+
+## 药物的定义（名词解释/选择题常考）
+能影响或探明机体的**生理功能或病理状态**，并可用于**预防、诊断和治疗疾病及计划生育**的化学物质。
+
+> 重点：药物区别于食物、毒物的核心不是「能影响生理功能」（很多毒物也能），而是**用来防治及诊断疾病**。
+
+## 药理学的研究内容（背这张表就够）
+
+| 分支 | 英文 | 研究方向 | 记法 |
+| --- | --- | --- | --- |
+| 药物效应动力学（药效学） | PD | 药物对机体的作用、作用机制、临床应用、不良反应 | 药 → 体 |
+| 药物代谢动力学（药动学） | PK | 机体对药物的处置（吸收、分布、代谢、排泄）及血药浓度随时间的变化 | 体 → 药 |
+
+## 药理学的三大任务
+1. 阐明药物作用机制，为**合理用药、减少不良反应**提供依据；
+2. 研究开发新药，发现药物新用途；
+3. 探索机体的生理、生化及病理过程，服务于其他学科。
+
+## 它在你的知识地图上的位置
+- [[ch1-action|第1章]] 讲**规则**：作用、两重性、量效、受体；
+- [[ch2-pka|第2章]] 讲**命运**：药物进体内后怎么被处置；
+- 第3—4章按「递质/受体」给外周药分家，第5章按「中枢靶点」给中枢药分家。
+
+:::quiz 药效学与药动学分别研究什么？
+**药效学（PD）**：药物 → 机体，研究药物对机体的作用规律与机制（药理作用、临床应用、不良反应）。
+**药动学（PK）**：机体 → 药物，研究药物在体内的吸收、分布、代谢、排泄及血药浓度随时间的变化规律。
+:::`
+  },
+
+  {
+    id: "ch1-action",
+    section: "药物作用与效应",
+    title: "药物作用与药理效应",
+    subtitle: "作用（因）与效应（果）· 基本作用 · 作用方式 · 选择性",
+    tags: ["兴奋", "抑制", "局部作用", "选择性"],
+    key: "作用不可测、效应可测；选择性随剂量加大而下降，且选择性 ≠ 特异性。",
+    md: `## 作用 vs 效应（最容易考概念）
+| | 定义 | 性质 |
+| --- | --- | --- |
+| 药物作用 | 药物与机体间的**初始作用**（原发作用） | 因，**无法测定** |
+| 药理效应 | 药物与机体相互作用引起机体**生理、生化功能或形态的变化** | 果，**可测定** |
+
+> 例：阿托品**阻断 M 受体**（作用）→ 平滑肌松弛、心率加快、腺体分泌减少（效应）。
+
+## 药物的基本作用：只有「调节」，没有「创造」
+药物**不能使机体产生新的功能**，只能把机体固有的功能**增强（兴奋）或减弱（抑制）**。
+
+1. 兴奋与抑制的比较标准是**机体原有的机能状态**；
+2. 药物不能产生新功能；
+3. 兴奋与抑制在一定条件下**可相互转化**（如中枢兴奋药过量→惊厥→抑制）；
+4. 同一药物对不同器官可产生**不同的调节作用**。
+
+## 作用方式（4 个概念，两两成对）
+| 作用方式 | 含义 | 举例 |
+| --- | --- | --- |
+| 局部作用 | 药物**入血前**对用药部位的作用 | 口服抗酸药中和胃酸 |
+| 吸收作用 | 药物**入血后**对非用药部位的作用 | 口服阿司匹林退热 |
+| 直接作用（原发） | 对**与之接触**的部位产生的作用 | 强心苷直接作用于心脏 |
+| 间接作用（继发） | 对**非与之接触**的部位产生的作用 | 强心苷强心→尿量增加 |
+
+> 思考题：作用方式与给药途径**有关**吗？——局部/吸收作用与给药途径直接相关；直接/间接作用则不一定。
+
+## 选择性
+定义：适当剂量下药物只对机体**少数组织器官**产生明显作用，对其他组织器官影响很小。
+
+**产生原因**：① 不同器官**分布量**不同；② 不同器官对药物**敏感性**不同；③ 不同器官**生化机能**不同；④ 组织结构不同。
+
+**两个特点（判断/选择常设陷阱）**：
+1. **相对性**：选择性随**剂量加大而下降**（剂量越大越"不挑食"）；
+2. **选择性 ≠ 特异性**：阿托品选择性高（主要作用在 M 受体分布的器官），但"特异性高"的说法不严谨——特异性指与受体结合的专一性。
+
+:::quiz 阿托品「选择性高」和「特异性高」，哪个说法对？为什么？
+「选择性高」对。选择性强调在治疗量下只对少数器官产生明显作用；特异性强调与受体结合的专一性。两者不是同一概念，不能互换。
+:::`
+  },
+
+  {
+    id: "ch1-twosides",
+    section: "药物作用与效应",
+    title: "药物作用的两重性",
+    subtitle: "治疗作用 vs 不良反应（9 类不良反应一张表）",
+    tags: ["副作用", "毒性反应", "后遗效应", "停药反应", "变态反应"],
+    key: "判断标准只有一条：是否符合用药目的。副作用可预知但不可避免，毒性反应可避免。",
+    md: `## 判断标准
+同一条药理作用，**符合用药目的**就是治疗作用，**不符合并带来不适或危害**就是不良反应。所以两重性不是两种作用，而是**同一种作用的两面**。
+
+## 治疗作用
+- **对因治疗**（治本）：消除病因，如抗菌药杀细菌；
+- **对症治疗**（治标）：缓解症状，如阿司匹林退热；
+- 原则：**急则治其标，缓则治其本，标本兼治**。
+
+## 不良反应 9 类（按机制分三组记）
+
+### A. 与药理效应相关
+| 类型 | 定义 | 关键特点 |
+| --- | --- | --- |
+| **副作用** | 治疗剂量下出现的、与治疗无关的作用 | 选择性低所致；发生率高、危害小；**可预知、无法避免**；可与治疗作用互相转化 |
+| **毒性反应** | 剂量过大/时间过长/机体高敏时出现 | 危害大，有急慢性之分；**可预知、可避免** |
+| **后遗效应** | 停药后血药浓度已降至阈浓度以下仍残存的效应 | 是原有药理作用的延续（如苯巴比妥次晨"宿醉"） |
+| **继发反应** | 治疗作用本身带来的不良后果（治疗矛盾） | 如四环素→二重感染（鹅口疮） |
+
+### B. 与遗传/免疫相关
+| 类型 | 定义 | 关键特点 |
+| --- | --- | --- |
+| **变态反应**（过敏） | 药物或其代谢物/杂质作为抗原或半抗原引起的病理性免疫反应 | **与剂量、药理作用无关**；药理性拮抗剂**无效**；再用可反复发生；难预测 |
+| **特异质反应** | 遗传异常导致的特殊反应 | 仅见于特异体质者；**与剂量成正比**；药理性拮抗剂**有效**；有家族性、终身性 |
+
+### C. 与长期用药相关
+| 类型 | 定义 | 关键特点 |
+| --- | --- | --- |
+| **耐受性** | 连续用药后机体对药物**反应性降低** | 增加剂量可（或不可）克服 |
+| **耐药性** | 长期用化疗药后**病原体/肿瘤细胞**敏感性降低 | 对象是病原体，不是人体 |
+| **停药反应**（反跳） | 长期用药后突然停药，原疾病重现或加剧 | 受体上调/增敏所致；**缓慢减量可避免** |
+
+> 口诀：**副作用难免、毒性可避、后遗在停药后、继发是治疗矛盾、变态与量无关、特异质与量有关、耐受是人、耐药是菌。**
+
+## 用这张表做 5 道分类题
+1. 麻黄碱平喘时出现失眠 → **副作用**（兴奋中枢是它固有的另一作用）
+2. 口服阿司匹林出现荨麻疹 → **变态反应**
+3. 长期四环素出现鹅口疮 → **继发反应**（二重感染）
+4. 儿童用庆大霉素致耳聋 → **毒性反应**
+5. 长期糖皮质激素突然停药出现肾上腺皮质危象 → **停药反应**
+
+:::quiz 副作用与毒性反应最本质的区别是什么？
+**副作用**发生在**治疗剂量**下，是药物固有作用中与治疗无关的那部分，**可预知但无法避免**（只能靠联合用药减轻）；
+**毒性反应**由**剂量过大/用药过久/机体高敏**引起，**可以避免**（控剂量、控疗程）。
+:::`
+  },
+
+  {
+    id: "ch1-dose",
+    section: "量效关系",
+    title: "剂量与量效曲线",
+    subtitle: "MED · 极量 · 治疗量 · 常用量 · 安全范围",
+    tags: ["剂量", "极量", "量反应", "质反应", "EC50"],
+    key: "剂量轴上从左到右：无效量 → 常用量 → 极量 → 最小中毒量 → 最小致死量。",
+    md: `## 量效关系的定义
+在一定剂量范围内，药物**效应强度随剂量增加而增强**。它是"剂量决定效果"这件事的数学表达。
+
+## 剂量轴上必须记住的 6 个点
+| 概念 | 定义 |
+| --- | --- |
+| 最小有效量 MED | 刚能引起效应的剂量（阈剂量） |
+| **常用量** | 大于 MED、小于极量，疗效显著而安全，临床实际用的剂量 |
+| **治疗量（有效量）** | MED ～ 极量之间的剂量范围 |
+| **极量 Max-D** | 能引起最大效应而**不至于中毒**的剂量，即最大治疗量、安全用药的最大剂量 |
+| 最小中毒量 MTC | 刚引起中毒的剂量 |
+| 最小致死量 MLC | 刚引起死亡的剂量 |
+
+> 安全范围 = MED（或 ED95）到 MTC（或 LD5）之间的剂量带。**极量是"上限红线"，不是推荐量。**
+
+## 两条量效曲线（考点：横坐标一定要取对数）
+| | 量反应 | 质反应 |
+| --- | --- | --- |
+| 效应性质 | 效应强度**连续变化**（血压、尿量） | 效应**不连续**，只数"阳性/阴性"个体的% |
+| 纵坐标 | 效应强度（%Emax） | 阳性反应率（%） |
+| 曲线形状 | 普通坐标为直方双曲线；**半对数坐标为对称 S 形** | 频数分布曲线呈钟形；**累加后为 S 形** |
+| 关键参数 | **EC50**（引起 50% 最大效应的浓度） | **ED50 / LD50** |
+
+> 为什么要把剂量取对数？因为药物剂量跨度常达几个数量级，取对数后 S 形曲线中段近似直线，便于读取 EC50/ED50。
+
+:::quiz 极量和常用量有什么区别？
+**极量**是能引起最大效应而不中毒的剂量，是安全用药的**最大剂量上限**；
+**常用量**是在治疗量范围内、疗效显著且安全的**临床实际用量**，小于极量。极量是红线，常用量是常规。
+:::`
+  },
+
+  {
+    id: "ch1-strength",
+    section: "量效关系",
+    title: "效能、效价强度与安全性评价",
+    subtitle: "Emax · potency · ED50/LD50 · 治疗指数 · 可靠安全系数",
+    tags: ["效能", "效价强度", "ED50", "LD50", "治疗指数", "pD2"],
+    key: "效能看「能有多强」，效价强度看「需要多少」。二者没有必然联系。",
+    md: `## 评价药效的两个独立维度
+| 参数 | 含义 | 数值意义 |
+| --- | --- | --- |
+| **效能 efficacy** | 药物能产生的**最大效应 Emax** | 越大，药效越强（如吗啡镇痛效能 > 阿司匹林） |
+| **效价强度 potency** | 引起**等效反应**时所需的剂量/浓度 | **剂量越小，效价强度越大**（如氢氯噻嗪效价 > 呋塞米） |
+| **ED50** | 引起 **50%** 个体出现阳性反应的剂量 | 越小，药效越高 |
+
+> 结论：**效能强的药效价不一定高，效价高的药效能不一定强。**
+> 例：利尿药中呋塞米**效能**最大（排钠上限最高），但氢氯噻嗪**效价强度**更高（小剂量即可排钠）。
+> pD2 = −logKD，是效价强度的受体层面表述，**pD2 越大亲和力越大**。
+
+## 评价毒性
+- **LD50**（半数致死量）：越小，**毒性越大**。
+
+## 评价安全性（三个指标，越大约安全）
+| 指标 | 计算 | 含义 |
+| --- | --- | --- |
+| **治疗指数 T.I** | LD50 / ED50 | 最常用，但只看中点 |
+| **可靠安全系数 C.S.F** | LD1 / ED99 | 更严格（要求几乎全部有效且几乎不致死） |
+| **安全范围** | ED95 ～ LD5 的剂量带 | 越大越安全 |
+
+> 陷阱：两条量效曲线可能**ED50 与 LD50 的比值相同**，但曲线陡峭程度不同→ 实际安全范围不同。所以 T.I 相同不代表一样安全，要看 C.S.F 和安全范围。
+
+:::quiz 效能与效价强度有什么不同？「效价强度高」是否等于「效能强」？
+**效能**=药物能达到的最大效应（Emax），回答"最多能有多强"；**效价强度**=达到等效反应所需剂量的大小，回答"要多少才够"。
+两者**不等价**：呋塞米效能最大但效价强度不如氢氯噻嗪；临床选药时，需要强效（如严重水肿）看效能，需要小剂量、少副作用时看效价强度。
+:::`
+  },
+
+  {
+    id: "ch1-receptor",
+    section: "受体与药物分类",
+    title: "受体、亲和力与内在活性",
+    subtitle: "受体的 6 大特性 · KD / pD2 · 内在活性 α",
+    tags: ["受体", "亲和力", "KD", "pD2", "内在活性", "上调下调"],
+    key: "亲和力决定「能不能结合」，内在活性决定「结合后能不能产生效应」。",
+    md: `## 受体的定义
+能与**特异性配体**结合、介导**细胞信号转导**的功能性蛋白质。
+
+## 受体的 6 大特性（简答高频）
+1. **高度特异性**：只与特定结构的配体结合；
+2. **高度敏感性**：数量极少却能产生显著效应（放大作用）；
+3. **饱和性与竞争性**：受体数量有限，配体间可竞争；
+4. **可逆性**：结合与效应一般可逆；
+5. **多样性**：一种受体常有多种亚型（M1—M5、α1/α2、β1/β2/β3）；
+6. **可调节性**：**上调/下调**（数量变化）、**脱敏/增敏**（反应性变化）。
+
+> 临床意义：长期用 β 阻断药→β 受体**上调**→突然停药出现**反跳**（这就是[[ch1-twosides|停药反应]]的受体机制，也是[[ch4-beta-blocker|普萘洛尔不可骤停]]的原因）。
+
+## 亲和力（affinity）
+定义：药物与受体**结合的能力**。两个参数：
+- **KD（解离常数）**：50% 受体被占据时的药物浓度。**KD 越大，亲和力越小**（反比，考生最易搞反）；
+- **pD2 = −logKD**：**pD2 越大，亲和力越大**（正比）。
+
+## 内在活性（intrinsic activity, α）
+定义：药物与受体结合后**引发生物效应的能力**，0 ≤ α ≤ 1，决定药物的**最大效应**。
+
+> 两句话锁定全部比较题：
+> - 亲和力相等 → 效应强度取决于**内在活性**；
+> - 内在活性相等 → 效应强度取决于**亲和力**。
+
+:::quiz KD 越大，亲和力越大还是越小？pD2 呢？
+KD 是 50% 受体被占据时的药物浓度，浓度越高说明越难结合，所以 **KD 越大 → 亲和力越小**。
+pD2 = −logKD，是 KD 的负对数，所以 **pD2 越大 → 亲和力越大**。
+:::`
+  },
+
+  {
+    id: "ch1-agonist",
+    section: "受体与药物分类",
+    title: "激动药与拮抗药",
+    subtitle: "完全/部分激动药 · 竞争性/非竞争性拮抗 · pA2",
+    tags: ["激动药", "部分激动药", "拮抗药", "pA2", "竞争性拮抗"],
+    key: "竞争性拮抗：曲线平行右移、Emax 不变；非竞争性拮抗：曲线右下移、Emax 降低。",
+    md: `## 三类药，一张表分完
+| 类别 | 亲和力 | 内在活性 α | 说明 |
+| --- | --- | --- | --- |
+| 完全激动药 | 有 | α = 1 | 能产生最大效应 |
+| 部分激动药 | 有 | 0 < α < 1 | 单独用是弱激动；**与完全激动药合用时表现为拮抗**（占着受体不出力） |
+| 拮抗药 | 有 | α = 0 | 只结合不产生效应，且**阻碍**激动药结合 |
+
+> 部分激动药的"两面性"是选择题热门：吗啡样的部分激动药喷他佐辛，单用镇痛，与吗啡合用可**减弱**吗啡的镇痛并**减轻**其呼吸抑制。
+
+## 两类拮抗药（图形题核心）
+| | 竞争性拮抗 | 非竞争性拮抗 |
+| --- | --- | --- |
+| 结合方式 | 与激动药**竞争同一结合位点**，可逆 | 结合位点不同或结合牢固，**相对不可逆** |
+| 对亲和力 | 降低激动药亲和力 | 降低亲和力 |
+| 对效能 | **不降低 Emax** | **降低 Emax** |
+| 量效曲线 | **平行右移** | **向右下移** |
+| 强度指标 | **pA2**（越大拮抗越强） | 无统一指标 |
+
+## pA2 怎么读
+使激动药浓度提高到原来的 **2 倍**时仍产生原效应，所需拮抗药浓度的**负对数**。pA2 越大 → 拮抗作用越强。
+
+> 记忆钩子：**竞争性=抢座位（加量能抢回来，天花板不变）；非竞争性=把椅子拆了（加量也没用，天花板被削低）。**
+
+:::quiz 竞争性拮抗药与非竞争性拮抗药对量效曲线的影响有何不同？
+**竞争性**：只降低激动药的亲和力、不降低效能，量效曲线**平行右移**，Emax 不变（加大激动药剂量可部分克服），强度用 pA2 表示。
+**非竞争性**：既降低亲和力又降低效能，量效曲线**向右下移**，Emax 下降，加大激动药剂量不能恢复最大效应。
+:::`
+  }
+
+  ]
+});
+
+</script>
+<script>
+/* ============================================================
+   第 2 章 · 总论（二）药动学 —— 机体如何处置药物
+   来源课件：2 药理学总论二线下授课-伍.pptx（39 页）
+   ============================================================ */
+PHARM.registerChapter({
+  id: "ch2",
+  order: 2,
+  no: "02",
+  title: "总论 · 药动学",
+  subtitle: "机体如何处置药物（PK）",
+  intro: "药物进体内要走四步：吸收、分布、代谢、排泄。前两步决定「到没到靶点、到了多少」，后两步决定「能待多久」。本章的计算题几乎全从 pKa、t1/2、Vd、Cl 这几个数出发。",
+  topics: [
+
+  {
+    id: "ch2-pka",
+    section: "跨膜转运",
+    title: "跨膜转运与 pKa（HH 公式）",
+    subtitle: "简单扩散 · 离子障 · 体液 pH 如何改变吸收与排泄",
+    tags: ["pKa", "HH公式", "离子障", "简单扩散"],
+    key: "分子型（非解离型）易透过膜被吸收，离子型难透过膜易被排泄。",
+    md: `## 四种跨膜转运
+| 方式 | 特点 | 代表 |
+| --- | --- | --- |
+| 简单扩散（脂溶扩散） | **主要方式**，顺浓度差、不耗能、无饱和 | 大多数药物 |
+| 滤过（水溶扩散） | 顺浓度差、靠流体静压/渗透压 | 水溶性小分子 |
+| 易化扩散（载体转运） | 顺浓度差、需载体、**有饱和与竞争** | 葡萄糖、部分药 |
+| 主动转运 | **逆浓度差、耗能**、需载体、有饱和竞争 | 青霉素经肾小管分泌 |
+| 膜动转运 | 胞吞/胞吐 | 大分子、维生素 B12 |
+
+## 影响简单扩散的三要素
+**分子量、脂溶性与极性、药物 pKa 与体液 pH**（后一条是考试核心）。
+
+## pKa 的定义（最容易被绕晕）
+**pKa = 药物解离 50% 时所在溶液的 pH**，反映药物的离子化能力。
+- pKa 与药物本身是弱酸还是弱碱**无关**：弱酸药的 pKa 可以 >7，弱碱药的 pKa 可以 <7；
+- 弱酸性药：**pKa 越大，酸性越弱**；
+- 弱碱性药：**pKa 越大，碱性越强**。
+
+## Henderson-Hasselbalch 公式
+\`\`\`
+弱酸药：pH − pKa = lg([A⁻]/[HA])     10^(pH−pKa) = [离子型]/[分子型]
+弱碱药：pKa − pH = lg([BH⁺]/[B])     10^(pKa−pH) = [离子型]/[分子型]
+\`\`\`
+
+**离子障**：解离型（离子型）带电荷，脂溶性极低，难以通过简单扩散透过生物膜。体液 pH 稍有变化，解离度就呈**指数**变化。
+
+## 两个必考实例
+**① 阿司匹林（弱酸，pKa 3.5）为什么胃里吸收快、肠里吸收少？**
+- 胃 pH≈1.5 ≪ pKa 3.5 → 分子型占绝对优势（>99%）→ 脂溶性高，易穿透胃黏膜 → 吸收快；
+- 肠液 pH≈6.5 > pKa → 离子型占优势 → 难以穿透肠黏膜 → 吸收率大大降低。
+
+**② 巴比妥类中毒为什么要碱化尿液？**
+- 苯巴比妥为弱酸，pKa≈7.4；
+- 酸性尿（pH 5.0）：分子型为主 → 肾小管**重吸收**多 → 排泄慢；
+- 碱性尿（pH 8.0）：离子型为主 → 不能被重吸收 → 随尿排出；
+- 临床：静注碳酸氢钠碱化尿液，是巴比妥中毒急救的重要措施。
+
+> 口诀：**「分子型易吸收，离子型易排泄」**。另有传统说法「酸酸碱碱促吸收，碱酸酸碱促排泄」——意思是酸性药在酸性环境吸收多、碱性药在碱性环境吸收多；要想加速弱酸药排泄就碱化尿液，加速弱碱药排泄就酸化尿液。
+
+:::quiz 弱酸性药与弱碱性药的 HH 公式分别怎么写？「离子障」是什么意思？
+弱酸药：pH − pKa = lg([A⁻]/[HA])；弱碱药：pKa − pH = lg([BH⁺]/[B])。
+「离子障」：药物解离后成为带电荷的离子型，脂溶性骤降，难以穿过脂质生物膜，因此吸收减少、重吸收减少而排泄增多。
+:::`
+  },
+
+  {
+    id: "ch2-absorb",
+    section: "体内过程",
+    title: "吸收与首过效应",
+    subtitle: "给药途径排序 · 生物利用度 F",
+    tags: ["吸收", "首过效应", "生物利用度", "给药途径"],
+    key: "首过效应决定「口服行不行」；生物利用度 F 是评价制剂质量的指标。",
+    md: `## 吸收的定义
+药物自体外或给药部位**进入全身血液循环**的过程。
+
+## 给药途径的吸收速度（背这个排序）
+**静注 > 吸入 > 肌内注射 > 皮下注射 > 舌下、直肠 > 口服 > 黏膜 > 皮肤**
+
+> 静注无吸收过程，生物利用度视为 100%。
+
+## 影响口服吸收的因素
+1. 药物的理化性质与剂型：液体（水溶液 > 混悬液 > 油剂）> 固体；
+2. 胃肠道功能与内容物：胃排空速度、食物、pH、胃肠蠕动；
+3. **首过效应**（最重要）。
+
+## 首过效应（首过消除）
+口服药在**首次通过胃肠壁和肝脏**时被酶代谢灭活，或经胆汁排泄，使进入体循环的药量减少。
+
+- 意义：首过效应显著的药（如硝酸甘油、利多卡因、普萘洛尔）**不宜口服**，改用**舌下、直肠、静脉、经皮**给药；
+- 硝酸甘油舌下含服，就是绕过首过效应的经典例子。
+
+## 生物利用度（bioavailability, F）
+定义：药物制剂中的药物被机体**吸收的相对量和速度**（即进入体循环的程度与速度）。
+
+- **绝对生物利用度** = 口服 AUC / 静注 AUC；
+- **相对生物利用度** = 受试制剂 AUC / 参比制剂 AUC；
+- 意义：① 反映药物被吸收利用的程度与速度；② **评价药品质量**的指标（仿制药一致性评价就基于此）。
+
+:::quiz 什么是首过效应？它对给药途径有什么影响？
+口服药首次经胃肠壁和肝脏时被代谢灭活或经胆汁排泄，使进入体循环的药量减少，即首过效应（首过消除）。
+首过显著的药物不宜口服，应改为舌下、直肠、静脉、经皮等途径给药（如硝酸甘油舌下含服）。
+:::`
+  },
+
+  {
+    id: "ch2-dist",
+    section: "体内过程",
+    title: "分布、血浆蛋白结合与 Vd",
+    subtitle: "再分布 · 血脑屏障 · 表观分布容积",
+    tags: ["分布", "血浆蛋白结合", "血脑屏障", "Vd"],
+    key: "结合型暂失活性、不被代谢排泄；Vd 反映分布范围，不是真实体液容积。",
+    md: `## 分布的定义
+药物从全身循环转运到各**组织器官**的过程。多数药物在体内分布**不均匀**，而药效取决于靶器官的浓度。
+
+## 影响分布的因素
+| 因素 | 要点 |
+| --- | --- |
+| 药物的理化性质 | 脂溶性、分子大小决定跨膜能力 |
+| **血浆蛋白结合** | 主要与**白蛋白**结合，可逆、有饱和与竞争 |
+| 与组织细胞结合 | 如碘在甲状腺、四环素沉积于骨骼牙齿 |
+| **特殊屏障** | 血脑屏障（只有高脂溶性、小分子易进）、胎盘屏障（几乎不阻挡）、血眼屏障 |
+| **pKa 与局部 pH** | 见下 |
+| 器官血流量 | 血流丰富者先分布（脑、肝、肾）→ 之后可发生**再分布**（硫喷妥钠麻醉苏醒快） |
+
+## 血浆蛋白结合的意义（3 条）
+1. 结合型为**暂时储存**形式，**不能跨膜、不被代谢排泄**；游离型才能产生效应；
+2. 有**饱和现象**与**竞争性置换**：两药竞争同一蛋白位点 → 游离药浓度骤升 → 作用增强甚至中毒（如华法林 + 保泰松）；
+3. 蛋白过低的患者（肝病、肾病、营养不良）用药易过量中毒。
+
+## pKa 决定「分布在哪一侧」
+| 体液 | pH | 弱酸性药分布 | 弱碱性药分布 |
+| --- | --- | --- | --- |
+| 细胞外液 | 7.4 | +++ | + |
+| 细胞内液 | 7.0 | ++ | ++ |
+| 乳汁 | 5.0 | + | **+++** |
+
+> 临床推论：**弱碱性药在乳汁中的浓度可高于血浆**，哺乳期用药需警惕对乳儿的影响。
+
+## 表观分布容积 Vd
+\`\`\`
+Vd = A / C      A：体内药量    C：血浆药物浓度
+\`\`\`
+- 不是真实的体液容积，而是**分布范围的形象表达**：Vd 大说明药物广泛分布到组织、血浆中浓度低；
+- 用途：计算**体内总药量**、**负荷剂量**、**推测排泄速度**（Vd 与清除率一起决定 t1/2）。
+
+:::quiz Vd（表观分布容积）代表什么？Vd 很大说明药物分布在哪？
+Vd = A/C，表示体内总药量与血浆浓度之间的关系，是分布范围的表达，**不是真实体液容积**。
+Vd 很大说明药物**广泛分布到组织**（血浆中浓度低），如地高辛、氯丙嗪；Vd 很小说明药物主要留在血浆中（如华法林约 0.1 L/kg）。
+:::`
+  },
+
+  {
+    id: "ch2-metabolism",
+    section: "体内过程",
+    title: "代谢与肝药酶",
+    subtitle: "Ⅰ/Ⅱ 相 · 酶诱导与酶抑制",
+    tags: ["肝药酶", "CYP450", "酶诱导", "酶抑制", "生物转化"],
+    key: "代谢的总体效果：脂溶性降低、水溶性增大，便于排出。",
+    md: `## 代谢（生物转化）的定义
+药物在体内发生**化学结构改变**的过程，主要在**肝脏**，少数在肠、肾、肺、血浆。
+
+## 两相反应
+| 相 | 反应 | 结果 |
+| --- | --- | --- |
+| **Ⅰ相** | 氧化、还原、水解（CYP450 为主） | 引入极性基团，多数**灭活**（少数活化，如环磷酰胺） |
+| **Ⅱ相** | 与葡萄糖醛酸、硫酸、甘氨酸等**结合** | 水溶性显著增大，便于排泄 |
+
+> 记：**代谢的净效果 = 脂溶性 ↓、水溶性 ↑**（脂溶性大易吸收，水溶性大易排泄）。
+
+## 肝微粒体酶（肝药酶）
+特点：**专一性低、活性有限**（有饱和与竞争）、**种属与个体差异大**、**易受药物诱导或抑制**。
+
+### 酶诱导剂（加快代谢 → 药效减弱／耐受）
+苯巴比妥、苯妥英钠、利福平、卡马西平、长期饮酒。
+> 例：苯巴比妥诱导肝药酶，可使**口服抗凝药、糖皮质激素**代谢加快而失效。
+
+### 酶抑制剂（减慢代谢 → 药效增强／中毒）
+红霉素等大环内酯类、氯霉素、西咪替丁、酮康唑、异烟肼、**葡萄柚汁**。
+> 例：氯霉素抑制肝药酶，可使苯妥英钠血浓度升高而中毒。
+
+## 为什么年龄和疾病会改变用量
+- 新生儿肝药酶发育不全、老年人肝血流量与酶活性下降 → **代谢减慢**，剂量应减少；
+- 肝功能不良者，经肝代谢的药物半衰期延长。
+
+:::quiz 酶诱导剂与酶抑制剂对合用药物有何影响？各举一例。
+**酶诱导剂**（苯巴比妥、利福平）加快合用药的代谢，使血药浓度下降、疗效减弱，甚至产生耐受；
+**酶抑制剂**（氯霉素、西咪替丁、红霉素）减慢合用药的代谢，使血药浓度升高，疗效增强甚至中毒。
+:::`
+  },
+
+  {
+    id: "ch2-excretion",
+    section: "体内过程",
+    title: "排泄",
+    subtitle: "肾排泄三过程 · 尿 pH · 肝肠循环",
+    tags: ["排泄", "肾小球滤过", "肝肠循环", "碱化尿液"],
+    key: "肾排泄 = 滤过 + 分泌 − 重吸收；尿液 pH 是调节弱酸/弱碱药排泄的开关。",
+    md: `## 排泄的定义
+药物（或其代谢物）**排出体外**的过程。肾是主要器官。
+
+## 肾排泄三个环节
+| 环节 | 特点 |
+| --- | --- |
+| **肾小球滤过** | 只有游离型（未与蛋白结合）可滤过；结合型滤不过 |
+| **肾小管主动分泌** | 载体转运，**有饱和与竞争**（如丙磺舒竞争青霉素分泌 → 延长青霉素作用时间） |
+| **肾小管重吸收** | 主要为**被动重吸收**；**分子型（脂溶性）重吸收多，离子型重吸收少** |
+
+\`\`\`
+肾排泄量 = 滤过量 + 分泌量 − 重吸收量
+\`\`\`
+
+## 影响肾排泄的因素
+1. 肾功能（最重要）；
+2. **尿液 pH**：碱化尿液 → 弱酸性药离子型增多 → 重吸收减少 → 排泄加快（巴比妥中毒、阿司匹林中毒的急救原理）；酸化尿液则加速弱碱药（如麻黄碱）排泄；
+3. 合并用药竞争分泌（丙磺舒 + 青霉素）；
+4. 肾血流量。
+
+## 其他排泄途径
+- **胆汁排泄 + 肝肠循环**：药物经胆汁进入十二指肠，部分被重吸收回肝 → 血药浓度出现**双峰**、作用时间延长（如洋地黄毒苷、四环素，中断肝肠循环可缩短半衰期）；
+- 呼吸道（吸入麻醉药经肺排出，是其复苏快的原因）；
+- 乳腺（乳汁偏酸，弱碱性药易蓄积 → 哺乳期慎用）；
+- 唾液腺、汗腺、泪腺（如服用某些药后汗液尿液变色）；
+- 胃肠道（未被吸收的药物直接随粪排出）。
+
+:::quiz 为什么碱化尿液能加速苯巴比妥的排泄？
+苯巴比妥为弱酸（pKa≈7.4）。碱化尿液后，尿 pH > pKa，药物主要以**离子型**存在；离子型脂溶性低，不能被肾小管重吸收，于是随尿大量排出，故静注碳酸氢钠可用于其中毒急救。
+:::`
+  },
+
+  {
+    id: "ch2-order",
+    section: "速率过程",
+    title: "消除动力学：一级与零级",
+    subtitle: "恒比消除 vs 恒量消除",
+    tags: ["一级动力学", "零级动力学", "恒比", "恒量"],
+    key: "一级是恒比（t1/2 恒定），零级是恒量（t1/2 随浓度增大而延长）。",
+    md: `## 公式
+\`\`\`
+dC/dt = − k·C^n
+\`\`\`
+- n = 1 → **一级动力学**（恒比消除）
+- n = 0 → **零级动力学**（恒量消除）
+
+## 对比表（必背）
+| 项目 | 一级动力学 | 零级动力学 |
+| --- | --- | --- |
+| 发生条件 | 药量较少、**未达饱和**（多数药治疗量属此类） | 药量过多、**酶或载体已饱和** |
+| 单位时间消除的**量** | 与浓度**正相关**，按**恒定比例**（恒比） | 与浓度**无关**，按**恒定量**（恒量） |
+| C–T 关系（普通坐标） | 指数衰减曲线 | **直线** |
+| 半对数 lgC–T | **直线** | 非线性（曲线） |
+| **t1/2** | **恒定**，与浓度无关 | **不恒定**，随浓度升高而延长 |
+| 例子 | 大多数药物在治疗量 | 苯妥英钠、阿司匹林、乙醇在大剂量时 |
+
+> 关键推论：按**固定剂量、固定间隔**给药时，只有**一级动力学**的药才能算出稳定的 Css；零级动力学药物剂量稍增即可**蓄积中毒**（如苯妥英钠剂量稍加就中毒）。
+> 零级现象是可以"降级"的：药量减少、浓度降到酶未饱和后，可**自行转为一级动力学**。
+
+:::quiz 一级与零级消除动力学的核心区别是什么？哪一种药物剂量稍增易蓄积中毒？
+**一级**：单位时间消除恒**比例**（恒比），与浓度正相关，t1/2 恒定，半对数图为直线；
+**零级**：单位时间消除恒**量**（恒量），与浓度无关，t1/2 随浓度增大而**延长**，普通坐标 C–T 为直线。
+**零级**动力学药物（苯妥英钠、大剂量阿司匹林、乙醇）剂量稍增即超出酶饱和能力，消除时间骤增 → 易蓄积中毒。
+:::`
+  },
+
+  {
+    id: "ch2-params",
+    section: "速率过程",
+    title: "t1/2、清除率与稳态血药浓度",
+    subtitle: "Ke · t1/2 · Cl · 5 个半衰期 · Css · 负荷量",
+    tags: ["t1/2", "清除率", "稳态", "负荷量", "蓄积"],
+    key: "5 个 t1/2 达坪或基本消除；Css 高低与剂量成正比，达坪时间与 t1/2 成正比。",
+    md: `## 消除速率常数 Ke
+单位时间消除的分数，\`Ke = 0.693 / t1/2\`。Ke 越大，消除越快。
+
+## 半衰期 t1/2
+血浆药物浓度下降**一半**所需时间（一级动力学时才恒定）。
+
+**三大临床意义**：
+1. 确定**给药间隔**（一般 1 个 t1/2 给药一次）；
+2. 估计**达稳态时间**（约 5 个 t1/2）；
+3. 估计**消除时间**（停药后约 5 个 t1/2 基本消除）。
+
+### 一级动力学消除/蓄积的分数表
+| 历经 t1/2 | 体内剩余 | 已消除 |
+| --- | --- | --- |
+| 1 | 50% | 50% |
+| 2 | 25% | 75% |
+| 3 | 12.5% | 87.5% |
+| 4 | 6.25% | 93.75% |
+| 5 | 3.13% | **≈96.9%** |
+| 6 | 1.56% | 98.44% |
+| 7 | 0.78% | 99.22% |
+
+> 记忆：**5 个半衰期 = 96.9%（≈97%），基本消除干净。** 恒速给药时，同样约 5 个 t1/2 达到稳态的 96.9%。
+
+## 清除率 Cl
+\`\`\`
+Cl = Vd × Ke = 消除速率 / 血浆浓度
+\`\`\`
+表示单位时间内有多少容积的血浆中的药物被完全清除，是**肝肾功能**的总体反映。肝功能或肾功能下降 → Cl 下降 → t1/2 延长。
+
+## 稳态血药浓度 Css（三个特点）
+1. **达稳态的时间只取决于 t1/2**，与剂量、给药次数无关（约 5 个 t1/2）；
+2. **Css 的高低与剂量成正比**；
+3. **波动幅度与给药间隔成正比**（间隔越长，峰谷差越大）。
+
+## 蓄积与负荷量
+- **蓄积**：反复给药时吸收量 > 消除量，体内药量逐渐增多；
+- **负荷量（loading dose）**：为迅速达到有效浓度，首次给予较大剂量，之后按维持量给药。
+  \`负荷量 = Vd × 目标血药浓度\`，可在 **1 个 t1/2 内**达到 Css。
+
+:::quiz 每隔一个半衰期给药一次，多久达到稳态？负荷剂量有什么意义？
+按一级动力学，**约 5 个半衰期**达到稳态血药浓度（约 96.9%），与剂量大小无关。
+负荷剂量是为**迅速**达到有效浓度而首次给予的较大剂量（负荷量 = Vd × 目标浓度），可在约 1 个 t1/2 内达到稳态，适用于需要立刻起效的抢救（如地高辛、胺碘酮的负荷量）。
+:::`
+  }
+
+  ]
+});
+
+</script>
+<script>
+/* ============================================================
+   第 3 章 · 外周神经系统药（一）胆碱能
+   来源课件：3 药理学传出一线下授课.pptx（50 页）
+   ============================================================ */
+PHARM.registerChapter({
+  id: "ch3",
+  order: 3,
+  no: "03",
+  title: "外周 · 胆碱能",
+  subtitle: "递质是乙酰胆碱的神经，及其药物",
+  intro: "这一章只要牢记一个骨架：Ach → M 受体 / N 受体 → 激动药与阻断药。所有药都是这四格里的一格，答题时先说它激动或阻断了哪个受体，作用自然推得出来。",
+  topics: [
+
+  {
+    id: "ch3-transmitter",
+    section: "基础",
+    title: "胆碱能神经与乙酰胆碱",
+    subtitle: "递质的合成、释放、灭活 · 神经分布",
+    tags: ["Ach", "胆碱乙酰化酶", "ChE", "胆碱能神经"],
+    key: "Ach 由胆碱乙酰化酶合成、由胆碱酯酶水解为胆碱和乙酸；阻断 ChE 就等于延长 Ach 的作用。",
+    md: `## 外周神经递质只有三类
+**乙酰胆碱（Ach）、去甲肾上腺素（NA/NE）、多巴胺（DA）**。本章只管 Ach。
+
+## 胆碱能神经的四条分布（背下来）
+1. **全部运动神经**（支配骨骼肌，末梢释放 Ach 作用于 N₂）；
+2. **全部植物神经节前纤维**（交感与副交感都是，作用于 N₁）；
+3. **全部副交感神经节后纤维**（作用于 M）；
+4. **少数交感神经节后纤维**（支配汗腺、骨骼肌血管舒张纤维，作用于 M）。
+
+> 推论：阻断 M 受体，既能抑制副交感的大部分效应，也能抑制交感中的"少数派"（汗腺分泌、骨骼肌血管舒张）。
+
+## Ach 的代谢
+\`\`\`
+合成：乙酰辅酶A + 胆碱  --胆碱乙酰化酶-->  Ach
+灭活：Ach --胆碱酯酶(ChE)--> 胆碱 + 乙酸
+\`\`\`
+- 释放后在突触间隙被 AchE 迅速水解，因此 Ach 作用**极短暂**；
+- 抗胆碱酯酶药抑制 ChE → Ach 在间隙堆积 → 作用被**延长、增强**（这是抗 ChE 药全部作用的源头）。
+
+## 两类胆碱酯酶
+| 类型 | 全称 | 分布 | 意义 |
+| --- | --- | --- | --- |
+| **AchE**（真性） | 乙酰胆碱酯酶 | 神经末梢、突触间隙 | 水解 Ach，专一性强 |
+| **BchE**（假性） | 丁酰胆碱酯酶 | 血浆、肝、组织 | 水解琥珀胆碱等，特异性低 |
+
+> 临床钩子：琥珀胆碱靠血浆 BchE 灭活，BchE 遗传性缺乏者用琥珀胆碱会**呼吸抑制延长**。
+
+:::quiz 说出胆碱能神经的四条分布，并指出各自末梢释放 Ach 作用于哪种受体。
+① 全部运动神经 → 骨骼肌终板 N₂ 受体；
+② 全部植物神经节前纤维 → 神经节 N₁ 受体；
+③ 全部副交感节后纤维 → 效应器 M 受体；
+④ 少数交感节后纤维（汗腺、骨骼肌血管舒张纤维）→ M 受体。
+:::`
+  },
+
+  {
+    id: "ch3-receptors",
+    section: "基础",
+    title: "M 与 N 受体及 M 样作用",
+    subtitle: "M1—M5 · N₁ · N₂ · 各器官效应",
+    tags: ["M受体", "N受体", "M样作用", "M1", "N2"],
+    key: "M 样作用 = 抑制心血管、收缩平滑肌、缩瞳、腺体分泌增加。",
+    md: `## 受体分型
+| 受体 | 亚型 | 主要分布 | 效应 |
+| --- | --- | --- | --- |
+| **M**（毒蕈碱型） | M1—M5 | 副交感节后纤维支配的效应器、汗腺 | 见下表 |
+| **N₁（NN）** | 神经型 | 神经节突触后膜、肾上腺髓质 | 促节前—节后传递、促 AD 释放 |
+| **N₂（NM）** | 肌肉型 | 骨骼肌运动终板 | 骨骼肌收缩 |
+
+## M 受体激动后的器官效应（一表打尽）
+| 器官 | 效应 | 临床"表现" |
+| --- | --- | --- |
+| 心脏 | 心率↓、传导↓、收缩力↓ | 心动过缓、血压下降 |
+| 支气管平滑肌 | **收缩** | 支气管痉挛、哮喘加重 |
+| 胃肠、膀胱、胆道平滑肌 | **收缩** | 腹痛、腹泻、尿频 |
+| 括约肌 | 舒张 | 大小便失禁 |
+| 瞳孔括约肌、睫状肌 | 收缩 | **缩瞳**、调节痉挛（看近清看远糊） |
+| 腺体 | 分泌↑ | 流涎、流泪、流涕、汗多、呼吸道分泌物多 |
+| 突触前膜 M | 负反馈 | 减少 Ach 释放 |
+
+> **M 样作用口诀：抑制心血管，收缩平滑肌，缩瞳睫痉挛，促进腺分泌。**
+
+## N 样作用
+- N₁ 激动 → 神经节兴奋、肾上腺髓质释放 AD → 血压升高、心率变化（取决于交感受体优势）；
+- N₂ 激动 → 骨骼肌收缩，剂量大时先肌颤后麻痹（神经肌接头持久去极化）。
+
+> 中毒表现的三段式：**M 样（早、最明显）+ N 样（肌颤）+ 中枢（先兴奋后抑制）**，[[ch3-ophos|有机磷中毒]]就是标准范例。
+
+:::quiz 阿托品阻断 M 受体后，心率、瞳孔、腺体分泌、胃肠平滑肌分别怎么变化？
+心率**加快**（解除迷走抑制）、瞳孔**扩大**（瞳孔括约肌舒张）、腺体分泌**减少**（口干、皮肤干燥、无汗）、胃肠平滑肌**松弛**（蠕动减弱，可致便秘胀气）。
+:::`
+  },
+
+  {
+    id: "ch3-pilocarpine",
+    section: "胆碱受体激动药",
+    title: "毛果芸香碱",
+    subtitle: "直接激动 M 受体 · 眼的三重作用",
+    tags: ["毛果芸香碱", "青光眼", "缩瞳", "调节痉挛"],
+    key: "缩瞳、降眼压、调节痉挛——三个作用都源于激动 M 受体，青光眼首选它。",
+    md: `## 基本定位
+**直接激动 M 受体**，对**眼和腺体**选择性高，对心血管影响小。属于 M 受体激动药（与之相对，[[ch3-ache|抗 ChE 药]]是间接起作用）。
+
+## 眼的三个作用（必考）
+| 作用 | 机制 | 表现 |
+| --- | --- | --- |
+| **缩瞳** | 激动瞳孔括约肌 M 受体 → 括约肌收缩 | 瞳孔缩小 |
+| **降低眼压** | 缩瞳使虹膜根部变薄 → 前房角间隙增大 → 房水回流入巩膜静脉窦 | 眼压下降 |
+| **调节痉挛** | 激动睫状肌 M 受体 → 睫状肌收缩 → 悬韧带松弛 → 晶状体变凸 | **看近清楚、看远模糊** |
+
+> 与阿托品的"调节麻痹"正好相反：阿托品使睫状肌松弛 → 晶状体扁平 → 看远清、看近糊。
+
+## 腺体
+汗腺、唾液腺、泪腺、胃肠道腺体分泌**明显增加**。
+
+## 临床应用
+1. **青光眼**（首选之一）：尤其**闭角型**（前房角狭窄）；开角型（巩膜静脉窦堵塞）也有效；
+2. **虹膜睫状体炎**：与扩瞳药（阿托品）**交替使用**，防止虹膜与晶状体粘连；
+3. **解救阿托品中毒**（全身给药时为 M 受体激动剂，需静注）；
+4. 口腔黏膜干燥症（口服）。
+
+## 注意
+- 滴眼后**压迫内眦**，减少药液经鼻泪管流入鼻腔吸收引起全身反应；
+- 中毒时可用**阿托品**对抗；
+- 长期滴眼可致调节痉挛、视力模糊，青光眼急性发作期慎与其他缩瞳药叠加。
+
+:::quiz 毛果芸香碱为什么能降低眼压？为什么说它"看近清楚、看远模糊"？
+**降眼压**：激动瞳孔括约肌 M 受体 → 缩瞳 → 虹膜根部变薄、前房角间隙增大 → 房水经巩膜静脉窦回流增加 → 眼压下降。
+**看近清、看远糊**：激动睫状肌 M 受体 → 睫状肌收缩 → 悬韧带松弛 → 晶状体变凸、屈光度增大（调节痉挛），故视近物清晰、视远物模糊。
+:::`
+  },
+
+  {
+    id: "ch3-ache",
+    section: "抗胆碱酯酶药",
+    title: "抗胆碱酯酶药",
+    subtitle: "新斯的明 · 毒扁豆碱 · 中枢抗 ChE 药",
+    tags: ["新斯的明", "毒扁豆碱", "重症肌无力", "AChE"],
+    key: "抑制 ChE → Ach 堆积 → 表现全部 M+N 样作用；新斯的明对骨骼肌作用最强。",
+    md: `## 共同机制
+抑制胆碱酯酶 → 突触间隙 Ach 不能被水解而**堆积** → 产生**全部 M 样 + N 样作用**（间接拟胆碱）。
+
+## 两大类
+| 类型 | 代表 | 与 ChE 的结合 |
+| --- | --- | --- |
+| **易逆性**（临床常用） | 新斯的明、毒扁豆碱、吡啶斯的明 | 可逆，作用维持数小时 |
+| **难逆性**（毒物） | **有机磷酸酯** | 磷酰化后"老化"，不可逆，见 [[ch3-ophos|有机磷中毒]] |
+
+## 新斯的明（重点）
+**三重机制**：
+1. 抑制 ChE，Ach 堆积（主要）；
+2. **直接激动骨骼肌运动终板 N₂ 受体**；
+3. 促进运动神经末梢释放 Ach。
+
+**作用选择性**：**骨骼肌 > 胃肠、膀胱平滑肌 > 腺体、眼、心血管**（这是它与毒扁豆碱最大的差别）。
+
+**临床应用**：
+- **重症肌无力**（对症治疗首选之一，注意过量可致"胆碱能危象"反而肌无力加重）；
+- 术后**肠胀气、尿潴留**；
+- 解救**阿托品中毒**；
+- 阵发性室上性心动过速；
+- 解救**非去极化肌松药**（筒箭毒碱）中毒。
+
+**禁忌**：机械性肠梗阻、尿路梗阻、支气管哮喘（M 样作用会加重痉挛）。
+
+## 毒扁豆碱（依色林）
+- 叔胺类，**脂溶性高**，易透过血脑屏障与角膜；
+- 对眼的缩瞳、降眼压作用**强于毛果芸香碱**，但**刺激性强**、易致结膜充血；
+- 可用于中药麻醉的**催醒**（易入中枢）。
+
+## 中枢抗 ChE 药（治阿尔茨海默病 AD）
+- **他克林**（第一代）：肝毒性大、ALT 升高，限制应用；
+- **多奈哌齐**（第二代）：长效、高选择性、耐受性好，为 AD 常用药。
+
+:::quiz 新斯的明为什么对骨骼肌作用最强？它的禁忌证有哪些？
+**机制三合一**：① 抑制 ChE 使 Ach 堆积；② **直接激动运动终板 N₂ 受体**；③ 促进运动神经末梢释放 Ach。三者都直接作用于神经肌接头，故对骨骼肌作用最强。
+**禁忌**：机械性肠梗阻、尿路梗阻（M 样作用使平滑肌收缩加重梗阻）、支气管哮喘（可致支气管痉挛）。
+:::`
+  },
+
+  {
+    id: "ch3-ophos",
+    section: "抗胆碱酯酶药",
+    title: "有机磷酸酯中毒与解救",
+    subtitle: "M 样 + N 样 + 中枢 · 阿托品与胆碱酯酶复活药",
+    tags: ["有机磷", "阿托品", "碘解磷定", "氯解磷定", "老化"],
+    key: "阿托品解 M 样（早、足量、维持），复活剂解 N 样（早、适量）。",
+    md: `## 中毒途径与机制
+有机磷酸酯（敌敌畏、对硫磷等）**脂溶性高**，可经皮肤、呼吸道、消化道吸收；与 ChE 结合形成**磷酰化 ChE**，使酶失活；久则"**老化**"而不可复活。
+
+## 中毒表现（三组症状，按顺序出现）
+**① M 样症状（最早、最突出）**
+- 眼：瞳孔缩小、视力模糊、眼痛；
+- 腺体：流涎、流泪、流涕、**大汗**；
+- 呼吸：呼吸道分泌物增多、**肺湿啰音**、呼吸困难（**最主要的死因之一是呼吸衰竭**）；
+- 胃肠：恶心、呕吐、腹痛、腹泻、大小便失禁；
+- 心血管：心率减慢、血压下降。
+
+**② N 样症状**：肌束颤动、抽搐，进而肌无力、**呼吸肌麻痹**。
+
+**③ 中枢症状**：先兴奋（烦躁、头痛、头晕），后抑制（昏迷、呼吸抑制、循环衰竭）。
+
+> 轻、中、重度中毒就是这三组的组合：轻度以 M 样为主，中度伴 N 样，重度出现中枢症状与呼吸循环衰竭。
+
+## 解救原则（两步走）
+1. **清除毒物**：脱离现场、洗胃、导泻、皮肤清洗；
+2. **解毒药联合应用**：
+   - **阿托品**：迅速解除 **M 样症状**（呼吸道分泌物、支气管痉挛、心动过缓）——**早期、足量、反复、维持**，达到"阿托品化"（瞳孔散大、口干、皮肤干燥、心率加快、肺部啰音消失）；
+   - **胆碱酯酶复活药**（碘解磷定、氯解磷定）：恢复 ChE 活性，主要改善 **N 样症状与中枢症状**——**早期、适量**使用。
+
+## 复活药机制
+- 与磷酰化 ChE 结合，使酶游离复活；
+- 与游离的有机磷结合成无毒物排出。
+- 局限：对**已老化**的磷酰化 ChE **无效**；剂量过大反而**抑制 ChE**、阻滞神经肌接头；中度以上中毒须**与阿托品合用**。
+
+> 一句话记：**阿托品打 M，复活剂救酶（N 与中枢），两者必须合用。**
+
+:::quiz 有机磷中毒时阿托品与胆碱酯酶复活药各解决什么问题？为什么必须合用？
+**阿托品**阻断 M 受体，迅速缓解 M 样症状（呼吸道分泌物多、支气管痉挛、心动过缓、瞳孔缩小），但不能复活 ChE，对 N 样症状（肌颤、呼吸肌麻痹）无效。
+**复活药**（碘/氯解磷定）使磷酰化 ChE 复活，主要改善 N 样与中枢症状，但对老化酶无效、起效较慢。
+两者作用环节互补，故中重度中毒必须**联合**并同时清除毒物。
+:::`
+  },
+
+  {
+    id: "ch3-atropine",
+    section: "M 受体阻断药",
+    title: "阿托品",
+    subtitle: "作用—用途—不良反应一一对应",
+    tags: ["阿托品", "M阻断", "有机磷中毒", "感染性休克"],
+    key: "腺体→术前给药；平滑肌→绞痛；心脏→心动过缓；眼→查眼底；血管→抗休克；CNS→先兴奋后抑制。",
+    md: `## 基本定位
+**非选择性 M 受体阻断药**，竞争性、可逆。大剂量也阻断 N₁ 受体和直接扩张血管。
+
+## 作用—用途—不良反应三列对应表（背这一张就够）
+| 药理作用 | 临床应用 | 不良反应 |
+| --- | --- | --- |
+| **抑制腺体分泌**（唾液、汗、呼吸道） | 全麻前给药（防误吸）、严重盗汗、流涎 | 口干、痰稠、皮肤干燥无汗 |
+| **松弛内脏平滑肌** | 胃肠绞痛、胆绞痛、肾绞痛（单用效差，需配镇痛药）、膀胱刺激症状 | 便秘、尿潴留、腹胀 |
+| **解除迷走神经对心脏的抑制** | 窦性心动过缓、轻度房室传导阻滞 | 心悸、心动过速 |
+| **扩瞳、调节麻痹** | 查眼底、验光、虹膜睫状体炎（与缩瞳药交替） | 畏光、视物模糊、**眼压升高（青光眼禁用）** |
+| **扩张血管**（大剂量，与 M 受体无关） | **感染性休克**（改善微循环）、有机磷中毒 | 皮肤潮红、温热 |
+| **兴奋 CNS**（大剂量） | — | 先兴奋（不安、谵妄、惊厥）后抑制（昏迷、呼吸抑制） |
+| 解除 M 样作用 | **解救有机磷中毒、拟胆碱药中毒** | — |
+
+## 关键剂量差别
+- 治疗量（0.5 mg）：口干、心率稍快；
+- 较大剂量（1—2 mg）：心率明显加快、扩瞳；
+- 大剂量（5—10 mg）：中枢兴奋、皮肤血管扩张；
+- 中毒量：谵妄、惊厥、昏迷、呼吸麻痹。**阿托品中毒的"三红"：脸红、口干、瞳孔大**，可用**毛果芸香碱**或**新斯的明**对抗（但解救有机磷中毒时禁用新斯的明）。
+
+## 禁忌
+**青光眼、前列腺肥大（易致尿潴留）**、高热（抑制出汗影响散热）。
+
+:::quiz 阿托品为什么可用于感染性休克？为什么青光眼禁用？
+**抗休克**：大剂量阿托品扩张小血管、改善微循环（此作用与阻断 M 受体无关），降低外周阻力、增加组织灌注，用于感染性休克（尤其伴微循环痉挛者）。
+**青光眼禁用**：阻断瞳孔括约肌 M 受体 → 瞳孔散大 → 虹膜根部增厚、前房角变窄 → 房水回流受阻 → **眼压升高**，可诱发急性发作。
+:::`
+  },
+
+  {
+    id: "ch3-scop",
+    section: "M 受体阻断药",
+    title: "东莨菪碱、山莨菪碱与合成代用品",
+    subtitle: "三类 M 阻断药的差异",
+    tags: ["东莨菪碱", "山莨菪碱", "654-2", "后马托品"],
+    key: "东莨菪碱入脑强→镇静防晕；山莨菪碱解痉、改善微循环选择性高。",
+    md: `## 分类
+| 类别 | 代表药 | 特点 |
+| --- | --- | --- |
+| 生物碱类 | 阿托品、**东莨菪碱**、**山莨菪碱** | 天然，作用广 |
+| 合成扩瞳药 | **后马托品** | 扩瞳、调节麻痹作用短，适于验光 |
+| 合成解痉药 | 丙胺太林、贝那替嗪 | 选择性作用于胃肠道平滑肌 |
+
+## 东莨菪碱
+- 外周作用**类似阿托品**：对**腺体、眼**作用较强，对**心血管**作用较弱；
+- **易通过血脑屏障**，对中枢有**强抑制作用**（治疗量即镇静、催眠）；
+- 用途：
+  1. **麻醉前给药**（镇静 + 抑制腺体分泌，优于阿托品）；
+  2. **晕动病**（防晕止吐，作用优于阿托品）；
+  3. 帕金森病；
+  4. 妊娠呕吐、放射病呕吐。
+
+## 山莨菪碱（654-2）
+- M 受体阻断作用**弱于阿托品**；
+- 对**胃肠及血管平滑肌解痉**的选择性较高；
+- 用途：**胃肠绞痛**、**感染性休克**（改善微循环），常作为阿托品的替代药，中枢作用弱、副作用少。
+
+## 阿托品代用品的选择逻辑
+- 要**散瞳验光**、作用短 → 后马托品；
+- 要**防晕止吐 + 术前镇静** → 东莨菪碱；
+- 要**解痉、抗休克且少中枢副作用** → 山莨菪碱。
+
+:::quiz 东莨菪碱与山莨菪碱的主要区别是什么？
+**东莨菪碱**：易入中枢，治疗量即有明显**镇静催眠**作用，外周对腺体、眼作用强而心血管弱，主要用于麻醉前给药、晕动病、帕金森病。
+**山莨菪碱（654-2）**：中枢作用弱，对**胃肠和血管平滑肌**解痉选择性高，主要用于胃肠绞痛和感染性休克。
+:::`
+  },
+
+  {
+    id: "ch3-pd",
+    section: "抗帕金森病药",
+    title: "抗帕金森病药",
+    subtitle: "恢复 DA/Ach 平衡 · L-DOPA 与苯海索",
+    tags: ["L-DOPA", "卡比多巴", "苯海索", "帕金森病", "开关反应"],
+    key: "黑质纹状体 DA↓、Ach 相对↑ → 补 DA 或抗胆碱，两条路都通向同一个平衡。",
+    md: `## 病理基础（先懂这个，药就好记）
+黑质—纹状体**多巴胺能神经元变性** → DA 减少 → Ach 能相对亢进 → **DA/Ach 失衡** → 锥体外系症状（震颤、肌强直、运动迟缓）。
+
+> 因此治疗只有两条路：**补 DA**（拟多巴胺药）或**削 Ach**（中枢抗胆碱药）。
+
+## 药物分类
+| 类别 | 代表药 | 作用 |
+| --- | --- | --- |
+| 多巴胺前体 | **L-DOPA（左旋多巴）** | 透过血脑屏障后脱羧成 DA |
+| 外周脱羧酶抑制剂 | **卡比多巴、苄丝肼** | 只在外周抑制脱羧，增加入脑量 |
+| DA 受体激动药 | 溴隐亭、普拉克索 | 直接激动 D 受体 |
+| 促 DA 释放药 | **金刚烷胺** | 促释放 + 弱抗胆碱 |
+| MAO-B 抑制剂 | 司来吉兰 | 减少 DA 降解 |
+| COMT 抑制剂 | 硝替卡朋、托卡朋、恩他卡朋 | 减少外周 DA 降解 |
+| 中枢抗胆碱药 | **苯海索（安坦）** | 阻断纹状体 M 受体，削 Ach |
+
+## L-DOPA（左旋多巴）
+- 本身无活性，经**氨基酸转运载体**快速吸收，**透过血脑屏障后**被脱羧成 DA 才起效；
+- 外周可被**多巴脱羧酶**变成 DA（引起外周副作用）、被 **COMT** 变成 3-OMD；
+- **用途**：各种帕金森病（**抗精神病药引起的帕金森综合征除外**，因那是受体被阻断，补 DA 无效）；抗肝昏迷（补充中枢递质）；
+- **不良反应**：
+  - 早期（外周 DA 所致）：恶心呕吐、食欲减退、心律失常、**体位性低血压**；
+  - 长期：**不自主异常运动**、**症状波动（"开—关"现象）**、精神症状；
+- **增效策略**：合用**卡比多巴/苄丝肼**（外周脱羧酶抑制剂，不让 L-DOPA 在外周浪费，同时减少外周副作用）是最经典组合。
+
+## 苯海索（安坦）
+- 中枢抗胆碱药，阻断纹状体 M 受体，**削 Ach**；
+- 对**震颤**效果好，对肌强直、运动迟缓较差；
+- 用于：轻症、不能耐受 L-DOPA 者、**抗精神病药引起的帕金森综合征**（此时抗胆碱药有效而 L-DOPA 无效）。
+
+:::quiz 为什么 L-DOPA 要与卡比多巴合用？抗精神病药引起的帕金森综合征为什么用苯海索而不用 L-DOPA？
+**合用卡比多巴**：卡比多巴是**外周**脱羧酶抑制剂，不易入脑，可阻止 L-DOPA 在外周脱羧变成 DA，使更多 L-DOPA 进入中枢，既**增强疗效**又**减少外周副作用**。
+**抗精神病药**所致帕金森综合征是 D₂ 受体被阻断、Ach 相对亢进所致，补充 DA 无靶点可用；此时用**中枢抗胆碱药（苯海索）**削 Ach 才对症。
+:::`
+  },
+
+  {
+    id: "ch3-nblock",
+    section: "N 受体阻断药",
+    title: "N 受体阻断药与肌松药",
+    subtitle: "神经节阻断药 · 去极化型与非去极化型肌松药",
+    tags: ["琥珀胆碱", "筒箭毒碱", "肌松药", "神经节阻断"],
+    key: "去极化型（琥珀胆碱）先肌颤、不能用新斯的明解救；非去极化型（筒箭毒碱）无肌颤、可用新斯的明拮抗。",
+    md: `## 一、N₁（神经节）阻断药
+代表：美加明、咪噻吩（六甲溴铵）。
+
+- 对**交感、副交感神经节同时阻断**，效应取决于哪一方占优势：
+  - 交感占优的部位（血管）→ 血管扩张、**血压下降**；
+  - 副交感占优的部位（眼、胃肠、腺体）→ 扩瞳、便秘、口干；
+- 不良反应多，已少用；现仅用于**高血压危象**、**控制性降压**。
+
+## 二、N₂（骨骼肌）阻断药——肌松药
+肌松顺序（从上到下）：**眼睑 → 颜面 → 颈部 → 四肢 → 躯干 → 肋间肌、膈肌**（所以呼吸肌最后麻痹，是安全性的基础，但过量仍致呼吸停止）。
+
+| | **去极化型** | **非去极化型** |
+| --- | --- | --- |
+| 代表 | **琥珀胆碱**（司可林） | **筒箭毒碱**、泮库溴铵、维库溴铵 |
+| 机制 | 与 N₂ 结合后**持久去极化**，先兴奋后阻滞（Ⅰ相）；反复用药转为Ⅱ相脱敏阻滞 | **竞争性**阻断 N₂，阻止 Ach 结合；大剂量还阻断突触前膜 Na⁺ 通道 |
+| 肌松前肌颤 | **有**（肌束颤动） | **无** |
+| 新斯的明能否拮抗 | **不能**（反而加重） | **能** |
+| 体内消除 | 靠血浆**假性胆碱酯酶**水解，作用快（1 min）、短（5 min） | 部分经肝代谢、肾排泄，作用较长 |
+| 特有禁忌/风险 | **高血钾**（肌颤使 K⁺ 外流）、**眼压升高**（眼外肌收缩）→ 青光眼禁用；肌痛 | 促**组胺释放**→ 血压下降、支气管痉挛 → 哮喘禁用；**重症肌无力禁用** |
+
+## 临床应用
+- 麻醉辅助用药（气管插管、腹部手术肌松）；
+- 咽喉部检查、骨折复位等需短时肌松者。
+
+> 记忆钩子：**琥珀胆碱 = 先抖一下再瘫（去极化）；筒箭毒碱 = 直接瘫（竞争性）**。抖的那一下带来两个麻烦：高血钾和眼压高。
+
+:::quiz 琥珀胆碱与筒箭毒碱的肌松机制、肌颤、拮抗药有何不同？
+**琥珀胆碱**：去极化型，与 N₂ 结合后持久去极化，**肌松前有肌束颤动**，靠血浆假性胆碱酯酶水解，**新斯的明不能拮抗**（会加重阻滞）；禁忌高血钾、青光眼。
+**筒箭毒碱**：非去极化型，竞争性阻断 N₂，**无肌颤**，作用较长，**新斯的明可拮抗**；可促组胺释放，哮喘与重症肌无力禁用。
+:::`
+  }
+
+  ]
+});
+
+</script>
+<script>
+/* ============================================================
+   第 4 章 · 外周神经系统药（二）肾上腺素能
+   来源课件：4 药理学传出二线下授课伍.ppt（34 页）
+             第4讲 传出二线下授课-薛志远.pdf（50 页）
+   （两讲内容重叠，此处合并成一章）
+   ============================================================ */
+PHARM.registerChapter({
+  id: "ch4",
+  order: 4,
+  no: "04",
+  title: "外周 · 肾上腺素能",
+  subtitle: "递质是去甲肾上腺素的神经，及其药物",
+  intro: "这一章的唯一难点是「α、β 受体激动后各是什么效应」。把口诀背下来，再把每个药看成「激动哪几个受体」的组合，所有作用、不良反应、禁忌都能自己推，不必死记。",
+  topics: [
+
+  {
+    id: "ch4-receptors",
+    section: "基础",
+    title: "肾上腺素能神经与 α/β 受体效应",
+    subtitle: "递质的合成与灭活 · 受体分布口诀",
+    tags: ["NA", "α受体", "β受体", "口诀", "递质"],
+    key: "α1 缩血管升压扩瞳；β1 强心；β2 扩支气管扩血管；α2、β2 都有突触前反馈。",
+    md: `## 肾上腺素的"版本历史"（帮你理清语法）
+| 顺序 | 名字 | 含义 |
+| --- | --- | --- |
+| 1 | 肾上腺素能神经 | 从交感神经节后纤维延伸出来的神经，**节后纤维末梢释放 NA（去甲肾上腺素）**，故也叫**去甲肾上腺素能神经** |
+| 2 | 肾上腺素 | 由**肾上腺髓质**分泌的激素（递质），是 NA 甲基化后的产物 |
+| 3 | 拟肾上腺素药 | 化学结构与药理作用**类似 AD** 的药物 |
+
+## 递质的合成与灭活
+\`\`\`
+酪氨酸 --酪氨酸羟化酶(限速)--> 左旋多巴 --脱羧--> 多巴胺 --β-羟化--> 去甲肾上腺素
+                                                      （在囊泡内）
+灭活：① 摄取（神经末梢重摄取、非神经组织摄取）为主要方式
+      ② 被 MAO（线粒体）与 COMT（胞外）酶解
+\`\`\`
+> 与 Ach 被酶快速水解不同，NA 主要靠**重摄取**终止作用 → 可卡因、三环类抗抑郁药抑制重摄取，会**增强** NA 作用。
+
+## α、β 受体效应口诀（薛版原话）
+> **「2-α-3-β肾上腺」**：α 有 α1、α2；β 有 β1、β2、β3，共 5 个亚型。
+
+| 受体 | 主要分布 | 激动后效应 |
+| --- | --- | --- |
+| **α1** | 皮肤、黏膜、内脏血管；瞳孔开大肌；胃肠膀胱括约肌；手足心汗腺 | **血管收缩、血压升高**；**扩瞳**；括约肌收缩；局部出汗 |
+| **α2** | 突触前膜 | **负反馈**减少 NA 释放；减少胰岛素分泌、收缩血管、聚集血小板 |
+| **β1** | 心脏、肾小球旁器 | **心率↑、收缩力↑、传导↑**（CO↑、耗氧↑）；促肾素释放 |
+| **β2** | 支气管、冠脉与骨骼肌血管、肝/肌糖原 | 支气管**舒张**；血管**舒张**（舒张压↓）；糖原分解、**血糖↑**；突触前膜正反馈 |
+| **β3** | 脂肪组织 | 脂肪分解 |
+
+> 一句话：**α 让血管缩、瞳孔开；β1 让心跳快而强；β2 让气顺、血管开、血糖升。**
+
+:::quiz α1、β1、β2 受体激动后的核心效应分别是什么？
+**α1**：皮肤黏膜及内脏血管收缩 → 血压升高；瞳孔开大肌收缩 → 扩瞳；括约肌收缩。
+**β1**：心脏兴奋 → 心率加快、收缩力增强、传导加速、心输出量与耗氧量增加；促肾素释放。
+**β2**：支气管扩张 → 解痉平喘；冠脉和骨骼肌血管扩张 → 舒张压下降；糖原分解 → 血糖升高。
+:::`
+  },
+
+  {
+    id: "ch4-classification",
+    section: "基础",
+    title: "拟肾上腺素药的分类",
+    subtitle: "儿茶酚胺 vs 非儿茶酚胺 · 按受体选择性分",
+    tags: ["儿茶酚胺", "分类", "麻黄碱", "多巴酚丁胺"],
+    key: "结构上有儿茶酚核的（AD、NA、ISO、DA、多巴酚丁胺）作用强而短；麻黄碱作用弱而持久。",
+    md: `## 按化学结构分
+| 类别 | 代表药 | 特点 |
+| --- | --- | --- |
+| **儿茶酚胺类**（含儿茶酚核） | 肾上腺素、去甲肾上腺素、异丙肾上腺素、多巴胺、多巴酚丁胺 | 作用**强而短**；口服易被 COMT/MAO 破坏、碱性环境易氧化 |
+| **非儿茶酚胺类** | 麻黄碱、间羟胺、去氧肾上腺素 | 作用**弱而久**；性质稳定、可口服、易入中枢 |
+
+## 按受体选择性分（做题时更常用）
+| 选择性 | 代表药 | 主要激动 |
+| --- | --- | --- |
+| 兼激动药 | **肾上腺素**、多巴胺、麻黄碱 | α 和 β |
+| α 激动药 | **去甲肾上腺素**、间羟胺、去氧肾上腺素 | α > β1，几乎无 β2 |
+| β 激动药 | **异丙肾上腺素**、多巴酚丁胺、沙丁胺醇 | ISO：β1+β2；多巴酚丁胺：β1；沙丁胺醇：β2 |
+
+## "为什么有的药口服无效"
+儿茶酚胺类口服后：
+1. 胃肠道黏膜的**硫酸基结合**反应使其失活（如异丙肾上腺素）；
+2. 被肝脏和肠道壁的 **MAO/COMT** 快速代谢；
+3. 在碱性肠液中易氧化。
+
+> 因此肾上腺素、去甲肾上腺素只能**注射**（静滴/皮下）；异丙肾上腺素可用气雾剂、舌下或静滴；多巴胺只能静滴。
+
+:::quiz 为什么肾上腺素、去甲肾上腺素口服无效？麻黄碱为什么可以口服？
+肾上腺素、去甲肾上腺素属**儿茶酚胺类**，口服后在胃肠道被结合、并在肠壁和肝脏被 MAO/COMT 快速代谢，碱性环境易氧化，故口服无效，只能注射给药。
+**麻黄碱**不属儿茶酚胺，结构稳定，不易被 MAO/COMT 破坏，因此可以口服，且作用弱而持久，还能进入中枢（中枢兴奋明显）。
+:::`
+  },
+
+  {
+    id: "ch4-ad",
+    section: "α、β 受体激动药",
+    title: "肾上腺素",
+    subtitle: "激动 α、β1、β2 · 过敏性休克首选",
+    tags: ["肾上腺素", "过敏性休克", "升压翻转", "心脏骤停"],
+    key: "治疗量舒张压不变或下降，较大剂量升压；与 α 阻断药合用升压作用被「翻转」。",
+    md: `## 受体选择性
+激动 **α、β1、β2**，对 β2 的激动很强 → 是"心脏 + 支气管 + 代谢"的全能药。
+
+## 作用
+**① 心脏（β1）**：强效**心脏兴奋**药 → 收缩力↑、心率↑、传导↑、心输出量↑、耗氧↑；剂量大易致**心律失常**甚至室颤。
+
+**② 血管（α1 与 β2 制约）**
+- α1：皮肤、黏膜、内脏血管收缩；
+- β2：**骨骼肌血管、冠状动脉扩张**；
+- 升压"翻转"实验是经典结论：
+  - 治疗量（0.5—1.0 mg 皮下）：β2 舒张作用 > α1 收缩作用 → 收缩压↑、**舒张压不变或稍降**；
+  - 较大剂量（>1 mg）：α1 > β2 → 加上心脏兴奋 → **收缩压与舒张压均升高**；
+  - **大剂量静注**：血压呈**双相变化**（先降后升）。
+
+**③ 支气管（β2 + α1）**：舒张支气管、减轻黏膜水肿、抑制过敏介质释放 → **过敏性休克的首选**、哮喘急性发作的备选。
+
+**④ 代谢**：血糖↑、血脂↑、代谢率与耗氧量↑。
+
+## 用途
+1. **心脏骤停**（配合除颤、阿托品等措施）；
+2. **过敏性休克首选**（激动 α1 升压 + β2 解痉 + 抑制介质释放，一药三用）；
+3. 支气管哮喘急性发作（现多被选择性 β2 激动药取代）；
+4. 与局麻药合用**延缓吸收、延长麻醉时间、减少吸收中毒**；
+5. 局部止血（鼻黏膜、牙龈出血，稀释后外用）；
+6. 青光眼（收缩睫状体血管，减少房水生成）。
+
+## 不良反应与禁忌
+- 心律失常、血压骤升、头痛、焦虑；静注必须**稀释后缓慢推注**；
+- 禁忌：高血压、器质性心脏病、糖尿病、甲状腺功能亢进。
+
+> **升压作用翻转**：先给 α 受体阻断药（如酚妥拉明）→ α1 被阻断、只剩 β2 舒张 → 再用肾上腺素，血压**不升反降**。因此 α 阻断药引起的低血压**不能用肾上腺素抢救，必须用去甲肾上腺素**。
+
+:::quiz 为什么 α 受体阻断药引起的低血压不能用肾上腺素解救？
+肾上腺素同时激动 α1（缩血管）和 β2（舒血管）。当 α 受体已被阻断时，α1 的缩血管作用被取消，只剩 β2 的舒血管作用，血压会**进一步下降**（升压作用被"翻转"）。
+此时应使用**主要激动 α 受体**的**去甲肾上腺素**升压。
+:::`
+  },
+
+  {
+    id: "ch4-da",
+    section: "α、β 受体激动药",
+    title: "多巴胺、多巴酚丁胺与麻黄碱",
+    subtitle: "抗休克最常用 · 选择性 β1 · 中枢兴奋",
+    tags: ["多巴胺", "多巴酚丁胺", "麻黄碱", "抗休克", "利尿"],
+    key: "多巴胺小剂量扩肾血管利尿、中剂量强心、大剂量缩血管；多巴酚丁胺只强心。",
+    md: `## 多巴胺（DA）
+激动 **DA 受体、α、β1**，对 β2 作用很弱；还能**促进 NA 释放**。口服无效，须静滴；**不易透过血脑屏障**（故无中枢作用），作用短。
+
+**剂量依赖的三档作用（必背）**：
+| 剂量 | 主要激动 | 效应 |
+| --- | --- | --- |
+| 小剂量 | **DA 受体**（肾、肠系膜、冠脉、脑血管） | 血管扩张、**肾血流量↑、GFR↑**，并抑制肾小管重吸收 Na⁺ → **利尿** |
+| 中剂量 | **β1** | 心肌收缩力↑（正性肌力 > 正性频率），心输出量↑ |
+| 大剂量 | **α1** | 血管收缩、血压升高、肾血流反而减少 |
+
+**用途**：
+1. **抗休克最常用**的药物（尤其伴心肌收缩力减弱或肾功能不良者）；
+2. 急性肾功能衰竭（与利尿药合用）；
+3. 急性心力衰竭。
+
+## 多巴酚丁胺
+- 选择性激动 **β1**：显著增强心肌收缩力、增加心输出量，对心率影响小；
+- 用于**急性心衰、心源性休克**（短期静脉支持），不用于升压。
+
+## 麻黄碱
+- 中药麻黄中的生物碱，性质**稳定、可口服、易入中枢**；
+- 机制：**直接激动 α、β 受体 + 促进 NA 释放**（间接作用）；
+- 特点：外周作用**弱而持久**，**中枢兴奋远强于肾上腺素**，易产生**快速耐受**；
+- 用途：轻症哮喘或预防发作、鼻塞（0.5%—1% 滴鼻）、防治硬膜外/腰麻引起的低血压、过敏性疾病；
+- 不良反应同肾上腺素，且失眠常见。
+
+:::quiz 多巴胺在小剂量和大剂量时作用有何不同？为什么说它是"抗休克最常用"的药？
+**小剂量**：主要激动 DA 受体 → 肾及肠系膜血管扩张、肾血流与 GFR 增加、抑制肾小管重吸收 Na⁺ → **利尿**；
+**中剂量**：激动 β1 → 心肌收缩力增强、心输出量增加；
+**大剂量**：激动 α1 → 血管收缩、血压升高（肾血流减少）。
+抗休克时它同时具备**升压、强心、保肾利尿**三重作用，且不易透过血脑屏障，故最常用；但大剂量会缩血管、损害肾灌注，需控制剂量。
+:::`
+  },
+
+  {
+    id: "ch4-na",
+    section: "α 受体激动药",
+    title: "去甲肾上腺素",
+    subtitle: "α 激动为主 · 升压最强 · 局部组织坏死",
+    tags: ["NA", "去甲肾上腺素", "升压", "组织坏死"],
+    key: "升压作用不翻转；静滴外漏致组织坏死，用酚妥拉明局部浸润。",
+    md: `## 受体选择性
+激动 **α1、α2 > β1**，对 β2 **几乎无作用**。
+
+## 作用
+**① 血管**：强烈收缩血管（皮肤黏膜 > 肾 > 肺、脑、肝、肠系膜 > 骨骼肌），但**冠脉扩张**（因心脏代谢产物增加）→ 外周阻力↑、血压↑。
+**② 心脏（β1）**：收缩力↑、传导↑；但血压升高反射性兴奋迷走神经 → **心率反而减慢**。
+**③ 血压**：**升压作用最强**的拟肾上腺素药，收缩压与舒张压均升高，**升压作用不被翻转**。
+
+## 体内过程与给药
+- 口服使胃黏膜血管收缩、吸收少且被破坏，**口服无效**（但口服可用于**上消化道出血**：去甲肾上腺素 8 mg + 冰生理盐水 150 ml 口服，局部收缩血管止血）；
+- **只能静滴**；肌注、皮下注射可致**局部缺血坏死**。
+
+## 用途
+1. **休克**（现多用于**血管扩张型/神经源性休克**，早期或小剂量；已不作为常规首选）；
+2. **低血压**：尤其**α 受体阻断药**（酚妥拉明、氯丙嗪）引起的低血压；
+3. 上消化道出血（口服局部止血）。
+
+## 不良反应（三条都要背）
+1. **局部组织缺血坏死**：静滴时间过长、浓度过高或外漏所致。处理：立即停止注射、热敷、**酚妥拉明或普鲁卡因局部浸润**；
+2. **急性肾功能衰竭**：肾血管强烈收缩、肾血流锐减 → 用药期间应**保持尿量 >25 ml/h**；
+3. **停药后血压下降**：长期静滴后突然停药，血压骤降 → 应**逐渐减量停药**。
+
+## 禁忌
+高血压、动脉硬化、器质性心脏病、肾功能不全、严重微循环障碍、孕妇。
+
+:::quiz 去甲肾上腺素静滴外漏导致局部组织坏死，如何处理？为什么它比肾上腺素更适合α阻断药引起的低血压？
+**处理**：立即停止注射、局部热敷，并用**酚妥拉明（α 阻断药）或普鲁卡因**局部浸润注射，以扩张血管、改善局部血流。
+**因为**去甲肾上腺素主要激动 α 受体、几乎不影响 β2，升压作用可靠且**不会被 α 阻断药"翻转"**；而肾上腺素在 α 被阻断后只表现 β2 舒血管作用，血压反而下降。
+:::`
+  },
+
+  {
+    id: "ch4-iso",
+    section: "β 受体激动药",
+    title: "异丙肾上腺素与四药对比",
+    subtitle: "β1+β2 · 舒张压下降 · 一张表分清 AD/NA/ISO/DA",
+    tags: ["异丙肾上腺素", "ISO", "对比表", "房室传导阻滞"],
+    key: "ISO 只激动 β：强心 + 扩血管 + 扩支气管 → 收缩压升、舒张压降、脉压差加大。",
+    md: `## 异丙肾上腺素（ISO）
+激动 **β1、β2**，对 α 几乎无作用。
+
+**作用**
+- 心脏（β1）：强效兴奋，心率↑、传导↑、收缩力↑；**较少引起室颤**，可用于**心脏骤停**与**中重度房室传导阻滞**；
+- 血管（β2）：骨骼肌血管、冠脉扩张 → 外周阻力↓ → **收缩压升高或不变、舒张压下降、脉压差加大**；
+- 支气管（β2）：强效舒张 → 哮喘急性发作；
+- 代谢：血糖↑、耗氧↑。
+
+**用途**：心脏骤停、房室传导阻滞、支气管哮喘急性发作、低排高阻型休克（已少用）。
+**不良反应**：心悸、头痛、头晕；哮喘患者可诱发心律失常；**器质性心脏病、甲亢禁用**。
+**给药**：口服无效（肠黏膜硫酸基结合失活），用**气雾剂、舌下含服或静滴**。
+
+## 四药对比表（考前速览）
+| 项目 | 肾上腺素 | 去甲肾上腺素 | 异丙肾上腺素 | 多巴胺 |
+| --- | --- | --- | --- | --- |
+| 受体 | α、β1、β2 | α > β1（无 β2） | β1、β2 | DA、α、β1 |
+| 心脏 | 强兴奋 | 兴奋但心率↓（反射） | 强兴奋 | 中剂量兴奋 |
+| 血管 | 皮肤内脏收缩、骨骼肌冠脉舒张 | **强烈收缩** | **舒张** | 小剂量肾、肠系膜舒张；大剂量收缩 |
+| 血压 | 收缩压↑，舒张压不变或↓；大剂量均↑ | 收缩压与舒张压均↑ | 收缩压↑、**舒张压↓**、脉压差↑ | 剂量依赖升高 |
+| 支气管 | 舒张 | 无 | **强舒张** | 弱 |
+| 首选用途 | **过敏性休克** | α 阻断药所致低血压 | 房室传导阻滞、心脏骤停 | **抗休克最常用** |
+
+:::quiz 用一张心血管"三个数"（收缩压、舒张压、脉压差）说明异丙肾上腺素与去甲肾上腺素的差别。
+**异丙肾上腺素**：β2 扩张骨骼肌血管 → 外周阻力下降，故收缩压升高（心输出量增加）而**舒张压下降**，**脉压差加大**。
+**去甲肾上腺素**：α 强烈收缩血管 → 外周阻力升高，收缩压与舒张压**都升高**，脉压差不一定增大；同时血压升高反射性减慢心率。
+:::`
+  },
+
+  {
+    id: "ch4-alpha-blocker",
+    section: "肾上腺素受体阻断药",
+    title: "α 受体阻断药",
+    subtitle: "酚妥拉明 · 酚苄明 · 哌唑嗪",
+    tags: ["酚妥拉明", "酚苄明", "哌唑嗪", "嗜铬细胞瘤", "直立性低血压"],
+    key: "阻断 α1 扩血管降压、阻断 α2 促 NA 释放 → 心脏兴奋、心率加快。",
+    md: `## 分类
+| 类别 | 代表药 | 特点 |
+| --- | --- | --- |
+| **非选择性 α 阻断** | **酚妥拉明**（短效、竞争性） | 作用弱而短 |
+| | **酚苄明**（长效、非竞争性） | 作用强而持久，刺激性强，**不宜皮下、肌注** |
+| **选择性 α1 阻断** | **哌唑嗪**、特拉唑嗪 | 降压时不引起反射性心动过速（优于非选择性） |
+| 选择性 α2 阻断 | 育亨宾 | 少用 |
+
+## 酚妥拉明（苄胺唑啉）
+**机制双通道**：
+1. 阻断 **α1** → 动脉扩张（后负荷↓）、静脉扩张（前负荷↓）→ 血压下降；
+2. 阻断 **α2**（突触前膜）→ NA 释放的负反馈解除 → NA↑、反射性交感兴奋 → **心脏兴奋、心率加快、心输出量增加、肾素↑**。
+
+**用途**：
+- 血管痉挛性疾病（雷诺病、血栓闭塞性脉管炎）；
+- **嗜铬细胞瘤**（诊断与术前准备，防止术中血压骤升）；
+- **去甲肾上腺素静滴外漏**的局部浸润（拮抗缩血管、防坏死）；
+- 顽固性充血性心衰、休克（利用其**心脏兴奋**作用）；
+- 勃起功能障碍、良性前列腺增生（α1 阻断）。
+
+**不良反应**：**直立性低血压**（用药后卧床、缓慢起立）、心动过速、胃肠反应。
+> 重要：其引起的低血压**只能用去甲肾上腺素纠正，禁用肾上腺素**（升压翻转）。
+
+## 酚苄明
+- 与 α 受体**共价结合**，非竞争性、长效（数天）；
+- 作用强而持久，用于外周血管痉挛、嗜铬细胞瘤术前准备、休克；
+- **刺激性强**：只能口服或静滴，**不宜皮下、肌注**。
+
+## 哌唑嗪（选择性 α1）
+- 只阻断 α1，不阻断 α2 → 降压时**不引起明显反射性心动过速**；
+- **首剂现象**：首次服药后 30—90 min 出现体位性低血压、晕厥 → 首剂减半、睡前服；
+- 用于高血压、良性前列腺增生（改善排尿）。
+
+:::quiz 酚妥拉明的降压与心脏兴奋分别由阻断哪个受体引起？
+**降压**：阻断血管 **α1** 受体 → 动脉与静脉扩张、外周阻力下降 → 血压下降。
+**心脏兴奋**：阻断突触前膜 **α2** 受体 → 负反馈解除 → NA 释放增加，加上血压下降引起的**反射性交感兴奋** → 心率加快、心输出量增加、肾素释放增多。
+:::`
+  },
+
+  {
+    id: "ch4-beta-blocker",
+    section: "肾上腺素受体阻断药",
+    title: "β 受体阻断药",
+    subtitle: "普萘洛尔 · 噻吗洛尔 · 三代分型与反跳",
+    tags: ["普萘洛尔", "噻吗洛尔", "反跳现象", "窦性心动过速", "哮喘禁用"],
+    key: "长期用药不可骤停（受体上调→反跳）；支气管哮喘、心动过缓、房室阻滞禁用。",
+    md: `## 三代分类
+| 代 | 代表药 | 选择性 |
+| --- | --- | --- |
+| 第 1 代（非选择性） | **普萘洛尔**、噻吗洛尔、吲哚洛尔 | β1 + β2 |
+| 第 2 代（选择性 β1） | 美托洛尔、比索洛尔、醋丁洛尔 | β1 |
+| 第 3 代（α + β） | 拉贝洛尔、卡维地洛 | α1 + β1 + β2 |
+
+## 体内过程（脂溶性决定命运）
+| | 高脂溶性（普萘洛尔） | 低脂溶性（阿替洛尔） |
+| --- | --- | --- |
+| 口服吸收 | 易吸收，但**首过效应明显**，生物利用度低 | 吸收差，首过少，生物利用度较高 |
+| 代谢 | 主要经**肝代谢**，t1/2 短（2—5 h） | 主要**原形经肾**排泄，t1/2 长 |
+| 特点 | 血药浓度个体差异可达 20 倍 → **剂量必须个体化** | 个体差异小 |
+
+## 药理作用
+1. **抑制心脏（β1）**：心率↓、收缩力↓、传导↓、心输出量↓、**耗氧量↓** → 抗心绞痛、抗心律失常、抗心肌梗死；
+2. **降压**：抑制交感中枢、抑制 NA 释放、**抑制肾素释放**、降低心输出量；
+3. **抗心衰（慢性、扩张型）**：改善舒张功能、减轻儿茶酚胺对心肌的毒性、抑制肾素、**上调 β 受体**恢复敏感性（需从小剂量起始、缓慢加量）；
+4. **抑制代谢**：脂肪分解↓、糖原分解↓、耗氧↓ → 用于甲亢辅助治疗；
+5. **收缩支气管（β2 被阻断）** → 可诱发、加重哮喘；
+6. **收缩外周血管（β2 被阻断）** → 加重外周血管痉挛、脑血管痉挛（偏头痛）；
+7. **减少房水生成** → **降低眼压**，噻吗洛尔滴眼治青光眼（脂溶性高、阻断力强）。
+
+## 临床应用
+窦性心动过速（**首选**）、心绞痛与心肌梗死（降低复发率与猝死率）、高血压（一线）、慢性心衰（第 2、3 代）、心律失常、偏头痛、肌震颤、焦虑症、青光眼、甲亢。
+
+## 不良反应与禁忌（高频）
+| 类别 | 内容 |
+| --- | --- |
+| 心血管抑制 | 窦性心动过缓、房室传导阻滞、**诱发或加重心衰**、低血压 |
+| 诱发哮喘 | 阻断 β2 → 支气管痉挛，**哮喘患者禁用**（选择性 β1 者也需慎用） |
+| 外周血管痉挛 | 雷诺现象、间歇性跛行加重 |
+| **反跳现象** | 长期用药**不可骤停**：β 受体**上调** → 突然停药引起心绞痛加重、血压反跳甚至心肌梗死 |
+| 其他 | 掩盖低血糖症状（糖尿病患者慎用）、中枢抑制（多梦、抑郁） |
+
+**禁忌**：心动过缓、房室传导阻滞、支气管哮喘、外周血管痉挛性疾病、严重心衰急性期。
+
+:::quiz 为什么长期用普萘洛尔不能突然停药？为什么它对哮喘患者是禁忌？
+**反跳**：长期阻断 β 受体使受体数量**上调**，突然停药后大量受体暴露于正常量的儿茶酚胺，出现交感过度兴奋 → 心绞痛加重、血压反跳、甚至心肌梗死，必须逐渐减量停药。
+**哮喘禁忌**：非选择性 β 阻断药同时阻断支气管的 **β2** 受体，使支气管平滑肌收缩、气道阻力增加，可诱发或加重哮喘发作。
+:::`
+  }
+
+  ]
+});
+
+</script>
+<script>
+/* ============================================================
+   第 5 章 · 中枢神经系统药 —— 神经抑制药
+   来源课件：第5讲-神经抑制药-线下课堂ppt-.pdf（99 页）
+   ============================================================ */
+PHARM.registerChapter({
+  id: "ch5",
+  order: 5,
+  no: "05",
+  title: "中枢 · 神经抑制药",
+  subtitle: "局麻 · 镇静催眠 · 抗癫痫 · 镇痛 · 抗精神失常",
+  intro: "中枢药看起来最杂，其实是「按靶点分家」：钠通道（局麻）→ GABA（镇静催眠、抗癫痫）→ 阿片受体（镇痛）→ 多巴胺/5-HT（抗精神失常）。先记住靶点，再记每个靶点下的代表药与「一句话作用」。",
+  topics: [
+
+  {
+    id: "ch5-local",
+    section: "局部麻醉药",
+    title: "局部麻醉药",
+    subtitle: "阻滞钠通道 · 酯类 vs 酰胺类 · 四种给药方法",
+    tags: ["局麻药", "利多卡因", "普鲁卡因", "丁卡因", "腰麻"],
+    key: "普卡不表麻、丁卡表麻毒性大、利多全能慎腰麻；酯类经血浆酯酶、酰胺类经肝。",
+    md: `## 机制
+在细胞膜**内侧**阻滞**电压依赖性钠通道** → Na⁺ 不能内流 → 动作电位不能产生 → 神经冲动传导受阻。**先阻滞痛觉、温觉，最后运动**（无髓鞘细纤维最先被阻滞）。
+
+## 分类
+| 类别 | 代表药 | 代谢 | 特点 |
+| --- | --- | --- | --- |
+| **酯类** | 普鲁卡因、丁卡因 | 血浆**假性胆碱酯酶**水解 | 毒性较大、治疗指数低、**过敏率高** |
+| **酰胺类** | 利多卡因、布比卡因、罗哌卡因 | **肝脏**代谢 | 毒性较小、治疗指数高、**过敏少**（与酯类无交叉过敏） |
+| 其他 | 达克罗宁、普莫卡因 | — | 表面麻醉用 |
+
+## 四种给药方法
+| 方法 | 做法 | 适用 | 常用药 |
+| --- | --- | --- | --- |
+| **表面麻醉** | 涂布于黏膜表面 | 眼、鼻、咽喉、气管浅表手术 | 丁卡因、利多卡因 |
+| **浸润麻醉** | 注射于皮下/手术野 | 局部小手术 | 利多卡因、普鲁卡因（量大易中毒） |
+| **神经阻滞** | 注射于神经干周围 | 口腔、四肢手术 | 利多卡因、布比卡因 |
+| **椎管内麻醉** | 蛛网膜下腔（腰麻）/硬膜外 | 下腹、下肢、分娩镇痛 | 腰麻：普鲁卡因、丁卡因、布比卡因、利多卡因；硬膜外：利多卡因、布比卡因、罗哌卡因 |
+
+> 腰麻要点：蛛网膜下腔与脑脊液相通，**低比重药液**可扩散入脑室抑制延髓呼吸中枢；用**葡萄糖**配成高比重、或调**体位**可控制麻醉平面。腰麻常需**麻黄碱**升血压。
+
+## 三句话记三个经典药
+- **普鲁卡因**：**「普卡安全不表麻」**——穿透力弱，不用于表面麻醉；用于浸润、传导、腰麻、硬膜外。
+- **丁卡因**：**「丁卡表麻毒性大」**——穿透力最强、毒性最大，最常用于表面麻醉。
+- **利多卡因**：**「利多全能慎腰麻，室性律乱首选它」**——起效快、扩散强、用途最广；**腰麻慎用**；同时是**强心苷中毒所致室性心律失常的首选**。
+
+## 不良反应
+过量/误入血管 → 中枢先兴奋（眩晕、寒战、惊厥）后抑制（呼吸循环抑制）；过敏反应（酯类多见）；腰麻后头痛、尿潴留。
+
+:::quiz 普鲁卡因、丁卡因、利多卡因各有什么"招牌用法"？为什么酯类局麻药过敏率高？
+- **普鲁卡因**：穿透力弱，**不用于表面麻醉**，主要用于浸润麻醉、神经阻滞、腰麻及硬膜外麻醉。
+- **丁卡因**：穿透力最强、毒性最大，**最常用于表面麻醉**。
+- **利多卡因**：起效快、扩散广、用途最全，但**腰麻慎用**；还是室性心律失常（尤其强心苷中毒）的首选。
+**酯类过敏率高**：酯类在血浆被假性胆碱酯酶水解，产生**对氨基苯甲酸**等代谢物，可作为半抗原引起过敏；酰胺类经肝代谢，过敏少见，且两类间无交叉过敏。
+:::`
+  },
+
+  {
+    id: "ch5-sedative",
+    section: "镇静催眠药",
+    title: "镇静催眠药与 BZ 的作用机制",
+    subtitle: "睡眠分期 · 三代药 · GABA-A 受体",
+    tags: ["BZ", "GABA", "镇静催眠", "睡眠分期"],
+    key: "BZ 使 Cl⁻ 通道开放「频率」增加；巴比妥延长开放「时间」——这是二者安全性的根源。",
+    md: `## 生理睡眠
+一夜睡眠中，**非快动眼睡（NREMS）**与**快动眼睡（REMS）**交替 4—5 次。慢波睡眠（SWS）与 REMS 之比约 **1:4**。
+- **SWS**：促进体力恢复与生长（生长激素分泌）；
+- **REMS**：促进智力恢复与神经发育（做梦期）。
+
+## 定义
+**镇静催眠药**：选择性抑制中枢神经系统，产生**镇静**和**近似生理睡眠**的药物。
+
+## 三代药物
+| 代 | 类别 | 代表 | 地位 |
+| --- | --- | --- | --- |
+| 第一代 | 巴比妥类 | 苯巴比妥、硫喷妥钠 | 安全性差，多被取代 |
+| 第二代 | **苯二氮䓬类（BZ）** | 地西泮、阿普唑仑、艾司唑仑 | 临床主力 |
+| 第三代 | 非 BZ 类 | **唑吡坦**、佐匹克隆 | 催眠专用，起效快 |
+
+## BZ 的四大作用
+1. **抗焦虑**：**小于镇静剂量**即出现；持续焦虑用长效，间歇焦虑用中短效；
+2. **镇静催眠**：对 **REMS 影响小**（近似生理睡眠），入睡时间↓、觉醒次数↓、睡眠时间↑；**早醒者用长效、入睡困难者用起效快而短效者**；
+3. **抗癫痫、抗惊厥**：**静注地西泮为癫痫持续状态的首选**；
+4. **中枢性肌肉松弛**。
+
+## 作用机制（考点：频率 vs 时间）
+\`\`\`
+BZ + BZ 结合位点 → 增强 GABA 与 GABA-A 受体结合 → Cl⁻ 通道开放「频率」↑ → Cl⁻ 内流↑ → 突触后膜超极化 → 抑制增强
+巴比妥类：直接延长 Cl⁻ 通道开放「时间」（无需 GABA 存在也可开放通道）
+\`\`\`
+> 区别的意义：巴比妥类能**直接**开放通道、剂量增加抑制作用无上限 → 麻醉、呼吸抑制、致死；BZ 需要 GABA 存在、**有天花板效应** → 安全性高。
+
+## BZ 的不良反应
+治疗量：**后遗效应**（次晨"酒醉感"、乏力、头晕）；
+大剂量：共济失调、言语不清；**静注对呼吸循环抑制明显**；
+长期：**耐受性、依赖性、成瘾**；
+急性中毒：昏迷、呼吸抑制 → **氟马西尼**（BZ 受体拮抗药）解救。
+合用乙醇等中枢抑制药 → 抑制显著增强（**禁忌饮酒**）。
+
+:::quiz BZ 与巴比妥类的作用机制有何不同？这一差别为什么决定了两者的安全性？
+**BZ**：作用于 BZ 结合位点，**增强** GABA 与 GABA-A 受体结合，使 Cl⁻ 通道开放的**频率**增加（必须有 GABA 存在）；
+**巴比妥类**：延长 Cl⁻ 通道开放的**时间**，高浓度时甚至可直接开放通道。
+因此巴比妥类剂量加大时抑制作用**没有上限**，易致麻醉、呼吸抑制与死亡，安全范围小；BZ 有**天花板效应**，治疗指数高、安全性好。
+:::`
+  },
+
+  {
+    id: "ch5-bz-compare",
+    section: "镇静催眠药",
+    title: "BZ 各论与巴比妥类对比",
+    subtitle: "地西泮 · 阿普唑仑 · 三唑仑 · 苯巴比妥中毒解救",
+    tags: ["地西泮", "阿普唑仑", "三唑仑", "巴比妥", "氟马西尼"],
+    key: "BZ 优点三条：抗焦虑显著、安全范围大、对 REMS 影响小；巴比妥诱导肝药酶、过量毒性大。",
+    md: `## 常用 BZ
+| 药 | 分类 | 特点与首选场景 |
+| --- | --- | --- |
+| **地西泮**（安定） | 长效 | 作用全面，抗焦虑、催眠、抗惊厥、肌松都用；静注为**癫痫持续状态首选** |
+| **阿普唑仑、艾司唑仑、劳拉西泮、氯硝西泮** | 中效 | 抗焦虑、镇静较好，常作**首选**；作用强、快、安全范围大、宿醉少；**麻醉前用药**常用（抗焦虑与遗忘作用强）；氯硝西泮抗惊厥抗癫痫好 |
+| **三唑仑** | 短效 | 催眠**强而短**、宿醉少，但**依赖性强**，偶致激惹、攻击行为 |
+
+## BZ 的优点（简答常考）
+1. **抗焦虑作用显著**，且在小于镇静剂量时即出现（巴比妥类无此特性）；
+2. **安全性好、治疗指数高**：无麻醉作用，对呼吸影响小，不易致死；
+3. 对 **REMS 影响小**，停药反跳轻，依赖性与成瘾性较巴比妥类小。
+
+## 巴比妥类
+**用途**：镇静、催眠、抗惊厥、抗癫痫（苯巴比妥长效，可用于癫痫大发作）；**硫喷妥钠**作静脉麻醉/诱导麻醉。
+**缺点**：
+- 对 REMS 影响**大** → 停药反跳、易耐受、依赖与戒断明显；
+- 不良反应多，过量中毒严重（麻醉、呼吸抑制）；
+- **诱导肝药酶**，干扰其他药物代谢（如使抗凝药失效）。
+
+**急性中毒救治**：
+1. **高锰酸钾溶液洗胃**（1:5000）；
+2. **硫酸钠导泻**（**不用硫酸镁**，因 Mg²⁺ 可被吸收加重中枢抑制）；
+3. 输液、**碱化体液及尿液**（碳酸氢钠）→ 加速排泄；
+4. 必要时血液透析；
+5. 死因多为**呼吸衰竭**（必要时人工呼吸、给氧）。
+
+## BZ 与巴比妥类对比表
+| 项目 | BZ | 巴比妥类 |
+| --- | --- | --- |
+| 对 REMS 影响 | + | +++ |
+| 后遗作用 | + | ++ |
+| 麻醉作用 | 无 | **有** |
+| 中枢性肌松 | ++ | − |
+| 安全范围（治疗指数） | **大** | 较小 |
+| 依赖性 | 轻 | 较大 |
+| 肝药酶诱导 | − | ++ |
+| 特异解毒药 | **氟马西尼** | 无（对症+碱化尿液） |
+
+:::quiz 巴比妥类急性中毒为什么用硫酸钠而不用硫酸镁导泻？
+硫酸镁中的 Mg²⁺ 在肠道可被少量吸收，而**镁离子本身有中枢抑制和呼吸抑制作用**；巴比妥类中毒者中枢已处于深度抑制状态，再用硫酸镁会**加重呼吸抑制**。
+硫酸钠不被吸收，只起渗透性导泻作用，安全，故中毒时选用硫酸钠。
+:::`
+  },
+
+  {
+    id: "ch5-epilepsy",
+    section: "抗癫痫与抗惊厥药",
+    title: "抗癫痫药与苯妥英钠",
+    subtitle: "发作分型与选药 · 苯妥英钠的三用三毒",
+    tags: ["苯妥英钠", "卡马西平", "乙琥胺", "丙戊酸钠", "癫痫持续状态"],
+    key: "大发作首选苯妥英钠，小发作禁用苯妥英钠（会加重）；持续状态首选静注地西泮。",
+    md: `## 发作分型（决定选药）
+- **部分性发作**：单纯性（局限性）、复合性（精神运动性）；
+- **全身性发作**：失神性小发作、肌阵挛、强直—阵挛性大发作、**癫痫持续状态**。
+
+## 苯妥英钠（大仑丁）——本章主角
+**三用**：
+1. **抗癫痫**：对大发作和单纯局限性发作**首选**；对**小发作无效甚至加重**（必考陷阱）；
+2. **抗神经痛**：三叉神经痛效果较好；
+3. **抗心律失常**：**强心苷中毒所致的室性心律失常首选**。
+
+**三毒（不良反应）**：
+| 类型 | 表现 |
+| --- | --- |
+| 局部刺激 | 口服厌食、恶心呕吐；静注致静脉炎 |
+| 急性中毒 | **小脑—前庭功能失调**（眼球震颤、共济失调、眩晕） |
+| 慢性毒性 | **牙龈增生**；叶酸吸收/代谢障碍 → **巨幼红细胞性贫血**；诱导肝药酶加速维生素 D 代谢 → **低钙血症、佝偻病、骨软化** |
+| 其他 | 过敏反应（皮疹） |
+
+## 选药表（背下来）
+| 发作类型 | 首选 | 其他可选 |
+| --- | --- | --- |
+| 大发作（强直—阵挛） | **苯妥英钠**、苯巴比妥 | 卡马西平、丙戊酸钠 |
+| 单纯部分性发作 | **苯妥英钠**、卡马西平 | 丙戊酸钠 |
+| 复杂部分性（精神运动性） | **卡马西平** | 丙戊酸钠 |
+| 失神小发作 | **乙琥胺** | 丙戊酸钠、氯硝西泮 |
+| 肌阵挛发作 | **丙戊酸钠** | — |
+| **癫痫持续状态** | **静注地西泮** | 苯妥英钠、苯巴比妥静注 |
+
+> 丙戊酸钠是**广谱**抗癫痫药（除部分性外几乎都可用），但肝毒性需监测。
+
+:::quiz 苯妥英钠的"三用"和最重要的慢性毒性是什么？为什么它不能用于失神小发作？
+**三用**：① 抗癫痫（大发作、单纯局限性发作首选）；② 抗神经痛（三叉神经痛）；③ 抗心律失常（强心苷中毒所致室性心律失常首选）。
+**慢性毒性**：**牙龈增生**（最典型），另有巨幼红细胞性贫血（叶酸障碍）、低钙血症与骨软化（维生素 D 代谢加速）。
+**不能治小发作**：对小发作无效，甚至**诱发或加重**失神发作，故失神小发作首选乙琥胺。
+:::`
+  },
+
+  {
+    id: "ch5-magnesium",
+    section: "抗癫痫与抗惊厥药",
+    title: "硫酸镁",
+    subtitle: "口服泻下利胆 · 注射抗惊厥降压",
+    tags: ["硫酸镁", "子痫", "抗惊厥", "利胆"],
+    key: "给药途径决定作用：口服泻下利胆，注射抗惊厥、降血压。",
+    md: `## 一药两用，看给药途径
+| 途径 | 机制 | 临床应用 |
+| --- | --- | --- |
+| **口服** | 肠内**渗透压↑**、肠容积↑，刺激十二指肠分泌**胆囊收缩素** → 肠蠕动↑ → **泻下**；同时奥迪氏括约肌舒张、胆囊收缩 → **利胆** | 急性便秘、排虫、排毒（**中枢抑制药中毒时禁用**，因肠道麻痹易致镁吸收） |
+| **注射** | 血 Mg²⁺↑ → ①抑制中枢；②抑制运动神经末梢释放 Ach；③抑制交感神经末梢释放 NA；④松弛血管平滑肌；⑤松弛胃肠胆道平滑肌 | **抗惊厥**（子痫、破伤风惊厥）；**降血压**（高血压危象、妊娠高血压） |
+
+## 抗惊厥的机制整合
+\`\`\`
+血镁↑ → 中枢抑制 + 神经肌接头 Ach 释放↓（肌松） + 血管扩张（降压）
+     → 惊厥停止、血压下降
+\`\`\`
+> 注意：硫酸镁的抗惊厥不是"抗癫痫"，它对**癫痫**无效，主要用于**子痫**和**破伤风**引起的惊厥。
+
+## 中毒与解救
+血镁过高 → 呼吸抑制、腱反射消失、心脏抑制 → **立即静注葡萄糖酸钙（或氯化钙）**拮抗。
+用药监护：**膝腱反射必须存在、呼吸 ≥16 次/分、尿量 ≥25 ml/h**（尿少时镁蓄积）。
+
+:::quiz 硫酸镁口服与注射的作用有何不同？中毒时用什么解救？
+**口服**：肠内高渗 → 肠容积增大、刺激胆囊收缩素分泌 → 肠蠕动加快而**泻下**；并舒张奥迪氏括约肌、收缩胆囊而**利胆**。
+**注射**：血镁升高 → 抑制中枢、减少神经末梢释放 Ach 与 NA、松弛血管平滑肌 → **抗惊厥**（子痫、破伤风）与**降压**（高血压危象）。
+**中毒解救**：静注**葡萄糖酸钙（或氯化钙）**，Ca²⁺ 与 Mg²⁺ 拮抗；同时监测膝腱反射、呼吸和尿量。
+:::`
+  },
+
+  {
+    id: "ch5-morphine",
+    section: "镇痛药",
+    title: "吗啡",
+    subtitle: "「三镇一抑三兴奋」· 阿片受体激动药",
+    tags: ["吗啡", "阿片受体", "三镇一抑三兴奋", "纳洛酮", "针尖样瞳孔"],
+    key: "急性中毒三联征：昏迷 + 针尖样瞳孔 + 呼吸抑制；解救用纳洛酮。",
+    md: `## 镇痛药的两类定义
+- **广义**：作用于中枢、选择性缓解疼痛、不影响意识与其他感觉的药物；
+- **狭义（麻醉性镇痛药）**：镇痛作用强大、反复应用**易成瘾**，包括阿片受体激动药、部分激动药与阻断药。
+
+## 阿片受体的分布与功能
+| 部位 | 功能 |
+| --- | --- |
+| 丘脑内侧、脊髓胶质区、第三脑室周围 | 疼痛的传入与感受整合 |
+| 边缘系统、蓝斑核 | 情绪与精神活动（欣快、依赖） |
+| 延脑孤束核 | 镇咳、呼吸抑制、降压 |
+| 脑干极后区、迷走神经背核 | 恶心、呕吐 |
+| 中脑盖前核 | **缩瞳** |
+
+## 中枢作用：**三镇一抑三兴奋**（核心口诀）
+| | 内容 | 机制 |
+| --- | --- | --- |
+| 三镇 | **镇痛**（急慢性疼痛均强，钝痛 > 锐痛；损伤炎症肿瘤痛 > 神经性痛） | 激动丘脑内侧、脑室及脊髓胶质区阿片受体 |
+| | **镇静**（明显镇静但无催眠，可诱导睡眠） | 激动边缘系统与蓝斑核 |
+| | **镇咳**（抑制延髓咳嗽中枢） | 孤束核 |
+| 一抑 | **呼吸抑制**（抑制脑干呼吸中枢、降低对 CO₂ 敏感性 → 呼吸浅慢） | 急性中毒**主要死于呼吸麻痹** |
+| 三兴奋 | **欣快感**（成瘾重要原因） | 边缘系统 |
+| | **缩瞳**（中毒剂量呈**针尖样瞳孔**） | 兴奋动眼神经缩瞳核 |
+| | **催吐** | 兴奋延脑催吐化学感受区 |
+
+## 平滑肌与其他
+- 兴奋胃肠平滑肌与括约肌 → 蠕动抑制 → **便秘**；
+- 兴奋胆道平滑肌与奥迪氏括约肌 → 胆内压升高 → **胆绞痛**（须合用阿托品）；
+- 兴奋输尿管、膀胱括约肌 → **尿潴留**；
+- 大量兴奋支气管平滑肌 → 诱发哮喘；
+- 抑制免疫、降低子宫对催产素的敏感性（**延长产程**）、影响体温与内分泌。
+
+## 用途
+1. **镇痛**：仅用于其他药无效的**剧痛**（严重烧伤、创伤、晚期癌痛）；内脏绞痛**必须合用解痉药**；**禁用于分娩止痛**；心绞痛、心梗须血压正常时才用；
+2. **心源性哮喘**：扩张周围血管（前、后负荷↓）+ 镇静（耗氧↓）+ 抑制呼吸（缓解浅快呼吸），须与强心苷、氨茶碱合用；**昏迷、休克、严重肺功能不全、痰多者禁用**；
+3. **止泻**：剧烈腹泻（感染性者须合用抗菌药）。
+
+## 不良反应
+- 一般：眩晕、恶心、便秘、排尿困难；
+- **耐受性与依赖性**（一般连用一周、个别 2—3 天即产生；戒断症状：烦躁、失眠、流涎、出汗、呕吐、腹痛，重者虚脱休克）；
+- **急性中毒三联征**：**昏迷 + 针尖样瞳孔 + 呼吸浅慢或不规则**（+ 血压下降）→ **解救：人工呼吸、吸氧 + 静注纳洛酮**（阿片受体阻断药）。
+
+:::quiz 吗啡急性中毒的典型表现是什么？如何解救？为什么吗啡中毒时针尖样瞳孔是重要体征？
+**三联征**：**昏迷、针尖样瞳孔、呼吸浅慢或不规则**（可伴血压下降），多死于**呼吸麻痹**。
+**解救**：人工呼吸、吸氧，静注**纳洛酮**（阿片受体竞争性阻断药），必要时重复给药。
+**针尖样瞳孔**：吗啡兴奋**动眼神经缩瞳核**（中脑盖前核阿片受体）使瞳孔缩小，中毒量时更明显；而其他中枢抑制药中毒多为瞳孔散大或正常，故有鉴别意义。
+:::`
+  },
+
+  {
+    id: "ch5-opioid-others",
+    section: "镇痛药",
+    title: "可待因、哌替啶、喷他佐辛与纳洛酮",
+    subtitle: "弱激动 · 合成替代 · 部分激动 · 阻断药",
+    tags: ["可待因", "哌替啶", "度冷丁", "喷他佐辛", "纳洛酮"],
+    key: "可待因镇咳强、哌替啶不延长产程不引起便秘、喷他佐辛是部分激动药、纳洛酮是拮抗药。",
+    md: `## 可待因（甲基吗啡）
+- 镇痛作用**弱于吗啡**，镇咳作用约为吗啡的 **1/4**；
+- 欣快感与依赖性**较弱**；
+- 用途：**中等程度疼痛** + **典型的中枢性镇咳药**（剧烈干咳）。
+
+## 哌替啶（度冷丁）
+| 项目 | 与吗啡比较 |
+| --- | --- |
+| 镇痛强度 | 约为吗啡的 **1/10** |
+| 成瘾性/欣快感 | 较轻 |
+| 镇咳 | **无**镇咳作用；中毒可致**中枢兴奋**（惊厥） |
+| 胃肠 | 作用时间短，**不引起便秘、无尿潴留**，也**无止泻用途** |
+| 子宫 | **不对抗催产素、不延长产程** |
+| 心血管 | 同吗啡（扩张血管、体位性低血压） |
+
+**用途**：各种剧痛（创伤、术后、内脏绞痛需合用阿托品、晚期癌痛）；**分娩止痛**（估计 2—4 h 内胎儿不能娩出时可用）；心源性哮喘；**麻醉前给药**、**人工冬眠**（与氯丙嗪、异丙嗪组成**冬眠合剂**）。
+
+## 喷他佐辛（部分激动药）
+- 激动 κ 受体、**拮抗 μ 受体**，属**阿片受体部分激动药**；
+- 特点：镇痛作用较弱，成瘾性小；
+- **与吗啡合用可减弱吗啡的镇痛作用**，同时**减轻其呼吸抑制**——"部分激动药的两面性"。
+
+## 纳洛酮 / 纳曲酮（阿片受体阻断药）
+- 竞争性阻断阿片受体；
+- **纳洛酮**：用于**吗啡类急性中毒**的解救（起效快、可重复）、阿片成瘾者的诊断；
+- 对阿片依赖者可**诱发戒断症状**，故不可随意用于依赖者。
+
+:::quiz 哌替啶与吗啡相比，在产科与消化系统方面有什么优势？
+**产科**：哌替啶**不对抗催产素**，不延长产程，可用于分娩止痛（估计 2—4 h 内胎儿不能娩出时）。
+**消化系统**：对胃肠平滑肌作用时间短，**不引起便秘与尿潴留**，也不用于止泻。
+另外它**无镇咳作用**，中毒时反而引起中枢兴奋（惊厥）。
+:::`
+  },
+
+  {
+    id: "ch5-chlorpromazine",
+    section: "抗精神失常药",
+    title: "氯丙嗪",
+    subtitle: "四条 DA 通路 · 抗精神病 · 锥体外系反应",
+    tags: ["氯丙嗪", "D2受体", "锥体外系", "冬眠合剂", "体位性低血压"],
+    key: "阻断 D2 → 中脑-边缘系统抗精神病；阻断黑质-纹状体 → 锥体外系；阻断结节-漏斗 → 内分泌紊乱。",
+    md: `## 先记脑内四条 DA 通路（解释氯丙嗪全部作用的钥匙）
+| 通路 | 功能 | 阻断后的结果 |
+| --- | --- | --- |
+| **中脑—边缘系统** | 情绪、觉醒、记忆、动机 | **抗精神病**（缓解阳性症状） |
+| **中脑—皮质** | 认知、思想、感觉、推理 | 过度阻断 → 静坐不能、阴性症状加重 |
+| **黑质—纹状体** | 与胆碱能系统共同调节锥体外系运动 | **锥体外系反应**（帕金森综合征等） |
+| **结节—漏斗** | 下丘脑—垂体激素与体温调节 | 催乳素↑（溢乳、乳房肿大）；促性腺激素、ACTH、生长激素↓ |
+
+## 药理作用
+**中枢**：
+1. **镇静**（阻断脑干网状结构 α 受体）；
+2. **抗精神病**：对**Ⅰ型（阳性症状）急性精神分裂症**效果好，需长期用药；
+3. **镇吐**：除**晕动病/前庭性呕吐**外的各种呕吐，也治顽固性呃逆（晕动病用东莨菪碱）；
+4. **抑制体温调节中枢**：使体温随环境温度下降 → **人工冬眠、低温麻醉**；**冬眠合剂 = 氯丙嗪 + 异丙嗪 + 哌替啶**；
+5. 增强其他中枢抑制药的作用。
+
+**植物神经**：阻断 α 受体 + 抑制血管运动中枢 → 血压下降、**体位性低血压**；外周抗胆碱较弱 → 口干、便秘、视力模糊。
+**内分泌**：见上表（催乳素↑、生长激素↓可用于巨人症、性腺与肾上腺皮质功能↓、皮肤色素沉着）。
+
+## 不良反应
+- 常见：嗜睡、乏力、情感淡漠；M 阻断症状；α 阻断（鼻塞、体位性低血压）；局部刺激（**深部肌注**）；
+- **锥体外系反应**（最突出）：
+  - **急性运动障碍**：帕金森综合征、**静坐不能**、急性肌张力障碍 —— 因黑质—纹状体 D₂ 被阻断、Ach 相对亢进 → 可用**中枢抗胆碱药（苯海索）**缓解；
+  - **迟发性运动障碍**：长期用药后 DA 受体**上调**，停药后出现，**中枢抗胆碱药反而加重**；
+- 其他：内分泌紊乱、诱发精神障碍、诱发惊厥癫痫、过敏、急性中毒。
+
+> 一句话总结：**一个氯丙嗪 = 阻断 D₂（抗精神病、镇吐、抑体温、内分泌、锥体外系）+ 阻断 α（镇静、降压）+ 阻断 M（阿托品样）。**
+
+:::quiz 氯丙嗪的锥体外系反应由哪条 DA 通路被阻断引起？为什么用苯海索有效，而迟发性运动障碍却不能用？
+**黑质—纹状体**通路的 D₂ 受体被阻断 → 该处 DA 功能下降、**Ach 相对亢进** → 出现帕金森综合征、静坐不能、急性肌张力障碍。
+**苯海索有效**：它是中枢抗胆碱药，阻断 M 受体、削弱相对亢进的胆碱能功能，恢复 DA/Ach 平衡。
+**迟发性运动障碍不能用**：其机制是长期阻断后 DA 受体**上调**、DA 功能相对过强，再用抗胆碱药会进一步加重症状。
+:::`
+  },
+
+  {
+    id: "ch5-new-antipsychotic",
+    section: "抗精神失常药",
+    title: "新型抗精神病药与碳酸锂",
+    subtitle: "5-HT/DA 阻断 · 躁狂与抑郁的临床特征",
+    tags: ["氯氮平", "利培酮", "碳酸锂", "躁狂三联症", "抑郁三主症"],
+    key: "新型药 5-HT₂A/D₂ 双阻断，锥体外系轻；碳酸锂是躁狂首选，治疗窗窄需监测血锂。",
+    md: `## 新型（非典型）抗精神病药
+机制：**同时阻断 5-HT₂A 与 D₂ 受体**。
+优点：对**阳性、阴性症状及认知情感症状**均改善，**锥体外系反应轻**，现为**一线用药**。
+
+| 药 | 特点 |
+| --- | --- |
+| **氯氮平** | 选择性阻断 **D₄** 与 **5-HT₂A**，抗精神病强而快，**几乎无锥体外系反应**；但可致**粒细胞缺乏** → 必须**定期查血象** |
+| 奥氮平 | 与氯氮平相似，粒细胞缺乏风险较低，但体重增加、血糖血脂异常明显 |
+| 利培酮、喹硫平、阿立哌唑、齐拉西酮 | 锥体外系反应轻，代谢副作用各异 |
+
+## 抗情感性精神障碍药：先认识两个综合征
+| | 躁狂**三联症** | 抑郁**三主症** |
+| --- | --- | --- |
+| 1 | 情绪高涨 | 情绪低落、压抑、郁闷 |
+| 2 | 联想思维加快 | 兴趣减退、愉快感缺失 |
+| 3 | 语言动作增多、不能自制 | 精力缺乏、注意力不集中 |
+
+## 碳酸锂
+- **治疗量对正常人的精神活动几乎无影响**，但能**控制躁狂发作**（是躁狂症的首选药之一）；
+- 机制：① 抑制脑内神经末梢对 **NA、DA 的释放**并促进再摄取 → 突触间隙 NA、DA↓；② 促进 **5-HT** 的合成与释放 → 间隙 5-HT↑；
+- 特点：**治疗窗窄**，血锂浓度需监测（>1.5 mmol/L 易中毒：恶心、震颤、共济失调、意识障碍、抽搐）；
+- 中毒处理：停药、补液促排、必要时透析。
+
+:::quiz 碳酸锂的抗躁狂机制是什么？为什么用时要监测血药浓度？
+**机制**：抑制脑内神经末梢释放 NA、DA 并促进其再摄取，使突触间隙 NA、DA 减少；同时促进 5-HT 的合成与释放，使间隙 5-HT 增多 —— 通过"降儿茶酚胺、升 5-HT"稳定情绪，控制躁狂。
+**监测原因**：碳酸锂**治疗窗很窄**（有效浓度与中毒浓度接近），血锂 >1.5 mmol/L 即可出现中毒（恶心呕吐、手抖、共济失调、意识障碍、抽搐），且经肾排泄、受钠摄入与肾功能影响大，必须定期测血锂并保持钠盐摄入稳定。
+:::`
+  },
+
+  {
+    id: "ch5-antidepressant",
+    section: "抗精神失常药",
+    title: "抗抑郁药",
+    subtitle: "三环类 · SSRI 五种药的差别",
+    tags: ["SSRI", "氟西汀", "帕罗西汀", "舍曲林", "三环类"],
+    key: "抗抑郁药的共同思路：提高突触间隙单胺（NE、5-HT）浓度。",
+    md: `## 共同机制
+抑郁的**单胺假说**：突触间隙 NE、5-HT 浓度不足。所有抗抑郁药都在做同一件事——**提高突触间隙单胺浓度**（阻断重摄取、抑制 MAO 降解或激动受体）。
+
+## 分类
+| 类别 | 代表 | 说明 |
+| --- | --- | --- |
+| **NA/5-HT 重摄取抑制（SNRI，三环类）** | **米帕明（丙米嗪）**、阿米替林、文拉法辛 | 抗抑郁强，但**同时阻断 α1、H1、M 受体** → 作用广、不良反应多 |
+| 选择性 NA 重摄取抑制 | 马普替林 | 较少用 |
+| **选择性 5-HT 重摄取抑制（SSRI）** | 氟西汀、帕罗西汀、舍曲林、西酞普兰 | **一线**，不良反应少 |
+| MAO 抑制 | 吗氯贝胺 | 与含酪胺食物同服可致高血压危象 |
+| 其他 | 米氮平、曲唑酮 | 兼有镇静作用 |
+
+## 三环类（米帕明）的"四阻断"
+| 阻断受体 | 后果 |
+| --- | --- |
+| 阻断 **5-HT/NA 重摄取**（治疗作用） | 突触间隙递质↑ → 抗抑郁 |
+| 阻断 **M** | 口干、视力模糊、便秘、**尿潴留** |
+| 阻断 **α1** | 血压下降、体位性低血压 |
+| 阻断 **H1** | 镇静、嗜睡 |
+| **奎尼丁样心肌抑制** | 心律失常（过量致死主因） |
+
+## SSRI 五种药的区别（考选择）
+| 药 | 特点 |
+| --- | --- |
+| **氟西汀**（百忧解） | 代谢物去甲氟西汀有活性、t1/2 长；各型抑郁症 + 强迫症 + 贪食症 |
+| **帕罗西汀** | 疗效与三环类相当，改善焦虑心境与社交回避；**适合伴焦虑的抑郁、强迫症、恐怖症** |
+| **舍曲林** | **无抗胆碱作用**；抑郁、强迫、恐怖症均有效；适合重度抑郁 |
+| **西酞普兰 / 艾司西酞普兰** | 对**性功能影响最小**；适合伴惊恐发作的焦虑或抑郁 |
+
+> 起效慢（2—4 周）是所有抗抑郁药的共同特点，急性期不可因"没效"就停药；SSRI 与 MAO 抑制剂**不可合用**（5-HT 综合征）。
+
+:::quiz SSRI 与三环类抗抑郁药相比有什么优点？为什么起效都很慢？
+**SSRI 优点**：选择性抑制 5-HT 重摄取，**不阻断 M、α1、H1 受体**，故口干、便秘、尿潴留、体位性低血压、镇静等不良反应明显少；也**无奎尼丁样心脏毒性**，过量较安全，已成为一线用药。
+**起效慢**：药物提高突触间隙单胺浓度是即刻的，但受体后信号适应、受体的下调与神经可塑性改变需要时间，故临床需 **2—4 周**才显效。
+:::`
+  }
+
+  ]
+});
+
+</script>
+
+<script>
+/* ============================================================
+   app.js —— 路由 / 渲染 / 搜索 / 进度 / 闪卡
+   （一般不用改这个文件；改内容请编辑 data/ 下的章节文件）
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var P = window.PHARM || { chapters: [] };
+  var MD = window.MD;
+
+  // 章的顺序由各章文件里的 order 字段决定
+  P.chapters.sort(function (a, b) { return (a.order || 99) - (b.order || 99); });
+
+  /* ---------------- 网站名字（改 data/manifest.js 的 site 字段） ---------------- */
+  var SITE = P.site || {};
+  var SITE_NAME = SITE.name || '药理学 · 学习地图';
+  var SITE_HERO = SITE.hero || SITE_NAME;
+
+  function applySite() {
+    document.title = SITE_NAME;
+    var m = document.getElementById('brandMark');
+    var n = document.getElementById('brandName');
+    var s = document.getElementById('brandSub');
+    if (m && SITE.mark) m.textContent = SITE.mark;
+    if (n) n.textContent = SITE_NAME;
+    if (s && SITE.sub) s.textContent = SITE.sub;
+  }
+  applySite();
+
+  var article = document.getElementById('article');
+  var treeEl = document.getElementById('tree');
+  var crumbEl = document.getElementById('crumb');
+  var progEl = document.getElementById('progressMini');
+  var searchInput = document.getElementById('searchInput');
+  var searchResults = document.getElementById('searchResults');
+
+  /* ---------------- 本地存储 ---------------- */
+  function load(key, def) {
+    try {
+      var v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : def;
+    } catch (e) { return def; }
+  }
+  function save(key, v) {
+    try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {}
+  }
+
+  var state = {
+    done: load('pharm.done', []),
+    theme: load('pharm.theme', 'light'),
+    open: load('pharm.open', { ch1: true })
+  };
+
+  /* ---------------- 建立索引 ---------------- */
+  var topics = [];
+  var byId = {};
+  P.chapters.forEach(function (ch) {
+    ch._sections = (ch.topics || []).map(function (t) { return t.section || '正文'; });
+    (ch.topics || []).forEach(function (t, i) {
+      t._ch = ch;
+      t._idx = i + 1;
+      topics.push(t);
+      byId[t.id] = t;
+    });
+  });
+
+  // 每章的分节顺序（去重保序）
+  P.chapters.forEach(function (ch) {
+    var seen = {}, order = [];
+    (ch.topics || []).forEach(function (t) {
+      var s = t.section || '正文';
+      if (!seen[s]) { seen[s] = 1; order.push(s); }
+    });
+    ch._sectionOrder = order;
+  });
+
+  var totalTopics = topics.length;
+  var isDone = function (id) { return state.done.indexOf(id) > -1; };
+
+  /* ---------------- 小工具 ---------------- */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function toast(msg) {
+    var el = document.querySelector('.toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('show'); }, 1600);
+  }
+  function percent() {
+    if (!totalTopics) return 0;
+    return Math.round(state.done.length / totalTopics * 100);
+  }
+  function quizCount() {
+    var n = 0;
+    topics.forEach(function (t) { n += MD.extractQuizzes(t.md).length; });
+    return n;
+  }
+  var QUIZ_TOTAL = quizCount();
+
+  /* ---------------- 主题 ---------------- */
+  function applyTheme() {
+    document.documentElement.setAttribute('data-theme', state.theme === 'dark' ? 'dark' : 'light');
+  }
+  applyTheme();
+
+  /* ---------------- 侧边栏 ---------------- */
+  function renderTree(activeTopicId) {
+    var html = '';
+    P.chapters.forEach(function (ch) {
+      var open = !!state.open[ch.id];
+      html += '<div class="tree-ch' + (open ? ' open' : '') + '">';
+      html += '<button data-toggle-ch="' + ch.id + '"><span class="caret">▶</span>' +
+              '<span class="ch-no">' + esc(ch.no || '') + '</span>' +
+              '<span>' + esc(ch.title) + '</span></button>';
+      html += '<div class="' + (open ? '' : 'tree-hidden') + '">';
+      ch._sectionOrder.forEach(function (sec) {
+        html += '<div class="tree-sec"><div class="sec-label">' + esc(sec) + '</div>';
+        (ch.topics || []).forEach(function (t) {
+          if ((t.section || '正文') !== sec) return;
+          html += '<a class="tree-topic' + (t.id === activeTopicId ? ' active' : '') +
+                  (isDone(t.id) ? ' done' : '') + '" href="#/t/' + t.id + '">' +
+                  '<span class="dot"></span><span>' + esc(t.title) + '</span></a>';
+        });
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+    treeEl.innerHTML = html;
+  }
+
+  function renderProgress() {
+    progEl.innerHTML = '已掌握 ' + state.done.length + '/' + totalTopics +
+      '<span class="bar"><i style="width:' + percent() + '%"></i></span>';
+  }
+
+  /* ---------------- 首页 ---------------- */
+  function viewHome() {
+    crumbEl.innerHTML = '<b>总览</b>';
+    var h = '';
+    h += '<div class="hero">' +
+         '<h1>' + MD.plain(SITE_HERO) + '</h1>' +
+         '<p>先把 ' + P.chapters.length + ' 章的结构记住，再逐点下钻。每一页都遵循同一套骨架：' +
+         '<b>一句话结论 → 机制/条目 → 对比表 → 口诀 → 考点自测</b>。</p>' +
+         '</div>';
+
+    h += '<div class="stats">' +
+         '<div class="stat"><b>' + P.chapters.length + '</b><span>章 · 知识骨架</span></div>' +
+         '<div class="stat"><b>' + totalTopics + '</b><span>个知识点</span></div>' +
+         '<div class="stat"><b>' + QUIZ_TOTAL + '</b><span>道自测题</span></div>' +
+         '<div class="stat"><b>' + percent() + '%</b><span>已掌握</span></div>' +
+         '</div>';
+
+    h += '<div class="stack-label">学习路线</div>';
+    h += '<div class="flow">' +
+         '<em>总论</em> 先立规则（药效学 · 药动学）' +
+         '<span class="arrow">→</span>' +
+         '<em>外周神经</em> 按递质分家（胆碱能 · 肾上腺素能）' +
+         '<span class="arrow">→</span>' +
+         '<em>中枢神经</em> 按靶点分家（抑制类药）' +
+         '</div>';
+
+    h += '<div class="stack-label">五大章</div><div class="ch-grid">';
+    P.chapters.forEach(function (ch) {
+      h += '<a class="ch-card" href="#/ch/' + ch.id + '">' +
+           '<div class="ch-head"><span class="ch-no">' + esc(ch.no || '') + '</span>' +
+           '<h3>' + esc(ch.title) + '</h3></div>' +
+           '<p class="ch-sub">' + esc(ch.subtitle || '') + '</p>' +
+           '<div class="ch-secs">' +
+           ch._sectionOrder.map(function (s) {
+             return '<span class="chip">' + esc(s) + '</span>';
+           }).join('') +
+           '</div>' +
+           '<div class="ch-meta"><span>' + (ch.topics || []).length + ' 个知识点</span>' +
+           '<span class="go">进入 →</span></div></a>';
+    });
+    h += '</div>';
+
+    h += '<div class="stack-label">怎么用</div><div class="md">' + MD.render(
+      '- **第一遍**：只看每章页的知识点标题和「一句话」，把骨架串起来，不要陷进细节。\n' +
+      '- **第二遍**：点开知识点，看机制与对比表；表格是考试最爱出的地方。\n' +
+      '- **第三遍**：翻到页底「考点自测」自己答，答对就点右上角**标记已掌握**，左下进度条会动。\n' +
+      '- 复习时点左侧 **闪卡自测**，全部题随机抽。'
+    ) + '</div>';
+
+    return h;
+  }
+
+  /* ---------------- 章页 ---------------- */
+  function viewChapter(ch) {
+    crumbEl.innerHTML = '<b>' + esc(ch.title) + '</b>';
+    var h = '<div class="page-head">' +
+            '<div class="kicker">第 ' + esc(ch.no || '') + ' 章</div>' +
+            '<h1>' + esc(ch.title) + '</h1>' +
+            '<p>' + esc(ch.intro || ch.subtitle || '') + '</p></div>';
+
+    ch._sectionOrder.forEach(function (sec) {
+      h += '<div class="sec-block"><h2>' + esc(sec) + '</h2>';
+      (ch.topics || []).forEach(function (t) {
+        if ((t.section || '正文') !== sec) return;
+        h += '<a class="topic-card' + (isDone(t.id) ? ' done' : '') + '" href="#/t/' + t.id + '">' +
+             '<div class="tc-top"><span class="tc-idx">' + t._idx + '</span><h4>' + esc(t.title) + '</h4></div>' +
+             (t.subtitle ? '<div class="tc-sub">' + esc(t.subtitle) + '</div>' : '') +
+             (t.key ? '<div class="tc-key">' + esc(t.key) + '</div>' : '') +
+             '</a>';
+      });
+      h += '</div>';
+    });
+    return h;
+  }
+
+  /* ---------------- 知识点页 ---------------- */
+  function viewTopic(t) {
+    var ch = t._ch;
+    crumbEl.innerHTML = '<b>' + esc(ch.title) + '</b> / ' + esc(t.section || '') + ' / ' + esc(t.title);
+
+    var h = '<div class="topic-head">' +
+            '<div class="kicker">' + esc(ch.title) + ' · ' + esc(t.section || '') + '</div>' +
+            '<h1>' + esc(t.title) + '</h1>' +
+            (t.subtitle ? '<p class="sub">' + esc(t.subtitle) + '</p>' : '');
+    if (t.tags && t.tags.length) {
+      h += '<div class="tags">' + t.tags.map(function (g) {
+        return '<span class="tag">' + esc(g) + '</span>';
+      }).join('') + '</div>';
+    }
+    h += '<div class="topic-actions">' +
+         '<button class="act-btn' + (isDone(t.id) ? ' on' : '') + '" data-act="toggle-done" data-id="' + t.id + '">' +
+         (isDone(t.id) ? '✓ 已掌握' : '标记已掌握') + '</button>' +
+         '<button class="act-btn" data-act="to-chapter" data-id="' + ch.id + '">回到本章目录</button>' +
+         '</div></div>';
+
+    h += '<div class="md">' + MD.render(t.md) + '</div>';
+
+    // 上下页
+    var i = topics.indexOf(t);
+    var prev = i > 0 ? topics[i - 1] : null;
+    var next = i < topics.length - 1 ? topics[i + 1] : null;
+    h += '<div class="pager">';
+    h += prev
+      ? '<a href="#/t/' + prev.id + '"><span>← 上一个</span>' + esc(prev.title) + '</a>'
+      : '<a><span>已是第一个</span>回到总览</a>';
+    h += next
+      ? '<a class="next" href="#/t/' + next.id + '"><span>下一个 →</span>' + esc(next.title) + '</a>'
+      : '<a class="next"><span>已是最后一个</span>回到总览</a>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ---------------- 闪卡 ---------------- */
+  var cards = null, cardIdx = 0, cardShown = false;
+
+  function buildCards() {
+    var list = [];
+    topics.forEach(function (t) {
+      MD.extractQuizzes(t.md).forEach(function (q) {
+        list.push({ q: q.q, a: q.a, tid: t.id, ttitle: t.title });
+      });
+    });
+    // 洗牌
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+    }
+    return list;
+  }
+
+  function viewCards() {
+    crumbEl.innerHTML = '<b>闪卡自测</b>';
+    if (!cards || !cards.length) { cards = buildCards(); cardIdx = 0; cardShown = false; }
+    var c = cards[cardIdx];
+    var h = '<div class="page-head"><div class="kicker">闪卡</div><h1>随机自测</h1>' +
+            '<p>共 ' + cards.length + ' 张，来自所有知识点的考点自测。' +
+            '先自己回答，再点「看答案」。</p></div>';
+    if (!c) return h + '<div class="empty">还没有自测题。</div>';
+
+    h += '<div class="card-stage">' +
+         '<div class="q">' + MD.inline(c.q) + '</div>' +
+         '<div class="a' + (cardShown ? '' : ' hidden') + '">' + MD.render(c.a) + '</div>' +
+         '<div class="src">出自：<a href="#/t/' + c.tid + '">' + esc(c.ttitle) + '</a>　(' + (cardIdx + 1) + ' / ' + cards.length + ')</div>' +
+         '</div>';
+    h += '<div class="card-bar">' +
+         '<button class="act-btn" data-act="card-show">' + (cardShown ? '收起答案' : '看答案') + '</button>' +
+         '<button class="act-btn" data-act="card-next">下一张 →</button>' +
+         '<button class="act-btn" data-act="card-shuffle">重新洗牌</button>' +
+         '</div>';
+    return h;
+  }
+
+  /* ---------------- 帮助 ---------------- */
+  var HELP_MD = [
+    '## 三层结构',
+    '',
+    '网站只有三个概念：**章（chapter）→ 节（section）→ 知识点（topic）**。',
+    '',
+    '- 章：`data/ch1-pd.js` 这样的一个文件；',
+    '- 节：知识点里的 `section` 字段，相同即归到同一节；',
+    '- 知识点：页面正文，字段见下。',
+    '',
+    '## 新增一个知识点（最常用）',
+    '',
+    '打开对应章文件（例如 `data/ch5-cns.js`），在 `topics: [ ... ]` 里复制一段加进去：',
+    '',
+    '```',
+    '{',
+    '  id: "ch5-mynew",                    // 唯一，改完不要动，否则已掌握记录会丢',
+    '  section: "镇痛药",                  // 归到哪一节（写新名字就自动新建一节）',
+    '  title: "芬太尼",',
+    '  subtitle: "强效阿片受体激动药",',
+    '  tags: ["芬太尼", "术后镇痛"],',
+    '  key: "一句话结论，会显示在目录卡片上。",',
+    '  md: `## 作用',
+    '正文……`',
+    '}',
+    '```',
+    '',
+    '保存后刷新网页即可，**不需要编译、不需要装任何东西**。',
+    '',
+    '## 新增一整章',
+    '',
+    '1. 把 `data/_template.js` 复制成 `data/ch6-xxx.js`（`id` 改成 `ch6`）；',
+    '2. 在 `index.html` 里，其他 `data/ch*.js` 下面加一行：`<script src="data/ch6-xxx.js"><\/script>`；',
+    '3. 在 `data/manifest.js` 里把 `chapters:[ ... ]` 的 `chapters` 顺序改成你要的顺序。',
+    '',
+    '## 正文能用的语法',
+    '',
+    '| 写法 | 效果 |',
+    '| --- | --- |',
+    '| `## 标题` / `### 小标题` | 分块标题 |',
+    '| `- 内容` / `1. 内容` | 列表 |',
+    '| `**粗体**` | 强调关键词 |',
+    '| `==高亮==` | 荧光笔 |',
+    '| `[[ch1-receptor|受体的概念]]` | 跳到另一个知识点（做知识串联的关键） |',
+    '| `| a | b |` 换行 `| --- | --- |` | 表格（对比类知识点优先用表格） |',
+    '| `> 口诀：……` | 引用块，含「口诀/速记/重点」自动变醒目色 |',
+    '| `:::quiz 题干` 换行 答案 换行 `:::` | 可折叠自测题，会自动进入闪卡 |',
+    '',
+    '## 常见改动',
+    '',
+    '- 换配色 / 字号：改 `assets/style.css` 顶部 `:root` 里的变量；',
+    '- 改首页文案：改 `assets/app.js` 里 `viewHome()` 的字符串；',
+    '- 想清空「已掌握」记录：浏览器控制台执行 `localStorage.clear()` 后刷新。',
+    '',
+    '## 为什么是「静态网页」',
+    '',
+    '整站是纯 HTML + CSS + JS，双击 `index.html` 就能用，不需要服务器、不需要联网、' +
+    '不需要 Node。也正因为如此，改内容只是改文本文件，可以随时加。'
+  ].join('\n');
+
+  function viewHelp() {
+    crumbEl.innerHTML = '<b>如何增改内容</b>';
+    return '<div class="page-head"><div class="kicker">维护指南</div><h1>如何增改内容</h1>' +
+      '<p>内容与代码是分开的：改文字只动 <code>data/</code> 下的文件。</p></div>' +
+      '<div class="md">' + MD.render(HELP_MD) + '</div>';
+  }
+
+  function view404(seg) {
+    crumbEl.innerHTML = '<b>未找到</b>';
+    return '<div class="empty">没有找到「' + esc(seg) + '」。<br><br>' +
+      '<a href="#/">回到总览</a></div>';
+  }
+
+  /* ---------------- 搜索 ---------------- */
+  var index = topics.map(function (t) {
+    return {
+      t: t,
+      title: t.title.toLowerCase(),
+      tags: (t.tags || []).join(' ').toLowerCase(),
+      body: (MD.plain(t.md) + ' ' + (t.subtitle || '') + ' ' + (t.key || '')).toLowerCase()
+    };
+  });
+
+  function doSearch(q) {
+    q = q.trim().toLowerCase();
+    if (!q) return [];
+    var out = [];
+    index.forEach(function (it) {
+      var score = 0;
+      if (it.title.indexOf(q) > -1) score += 100;
+      if (it.tags.indexOf(q) > -1) score += 40;
+      if (it.body.indexOf(q) > -1) score += 10;
+      if (score) out.push({ it: it, score: score });
+    });
+    out.sort(function (a, b) { return b.score - a.score; });
+    return out.slice(0, 14);
+  }
+
+  function renderSearchDropdown(q) {
+    var res = doSearch(q);
+    if (!q.trim()) { searchResults.hidden = true; return; }
+    if (!res.length) {
+      searchResults.innerHTML = '<div class="sr-empty">没有匹配，换个关键词（药名、受体名、口诀）</div>';
+    } else {
+      searchResults.innerHTML = res.map(function (r) {
+        var t = r.it.t;
+        return '<a class="sr-item" href="#/t/' + t.id + '"><b>' + esc(t.title) + '</b>' +
+               '<span>' + esc(t._ch.title + ' · ' + (t.section || '')) + '</span></a>';
+      }).join('');
+    }
+    searchResults.hidden = false;
+  }
+
+  /* ---------------- 路由 ---------------- */
+  function parse() {
+    var h = (location.hash || '#/').replace(/^#/, '');
+    if (!h) h = '/';
+    var seg = h.split('/').filter(Boolean);
+    if (!seg.length) return { name: 'home' };
+    if (seg[0] === 't' && seg[1]) return { name: 'topic', id: decodeURIComponent(seg[1]) };
+    if (seg[0] === 'ch' && seg[1]) return { name: 'chapter', id: decodeURIComponent(seg[1]) };
+    if (seg[0] === 'cards') return { name: 'cards' };
+    if (seg[0] === 'help') return { name: 'help' };
+    return { name: 'home' };
+  }
+
+  function render() {
+    var r = parse();
+    var activeTopic = null;
+    var html;
+
+    if (r.name === 'topic') {
+      var t = byId[r.id];
+      if (!t) { html = view404(r.id); }
+      else {
+        activeTopic = t.id;
+        state.open[t._ch.id] = true;
+        html = viewTopic(t);
+      }
+    } else if (r.name === 'chapter') {
+      var ch = null;
+      P.chapters.forEach(function (c) { if (c.id === r.id) ch = c; });
+      html = ch ? viewChapter(ch) : view404(r.id);
+      if (ch) state.open[ch.id] = true;
+    } else if (r.name === 'cards') {
+      html = viewCards();
+    } else if (r.name === 'help') {
+      html = viewHelp();
+    } else {
+      html = viewHome();
+    }
+
+    article.innerHTML = html;
+    renderTree(activeTopic);
+    renderProgress();
+    save('pharm.open', state.open);
+    window.scrollTo(0, 0);
+    document.body.classList.remove('nav-open');
+  }
+
+  /* ---------------- 事件 ---------------- */
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-act],[data-toggle-ch]') : null;
+    if (!el) {
+      if (!searchResults.contains(e.target) && e.target !== searchInput) searchResults.hidden = true;
+      return;
+    }
+
+    if (el.hasAttribute('data-toggle-ch')) {
+      var id = el.getAttribute('data-toggle-ch');
+      state.open[id] = !state.open[id];
+      save('pharm.open', state.open);
+      var cur = parse();
+      renderTree(cur.name === 'topic' && byId[cur.id] ? cur.id : null);
+      return;
+    }
+
+    var act = el.getAttribute('data-act');
+    if (act === 'toggle-done') {
+      var tid = el.getAttribute('data-id');
+      var k = state.done.indexOf(tid);
+      if (k > -1) { state.done.splice(k, 1); toast('已取消标记'); }
+      else { state.done.push(tid); toast('已标记掌握 ✓'); }
+      save('pharm.done', state.done);
+      render();
+    } else if (act === 'to-chapter') {
+      location.hash = '#/ch/' + el.getAttribute('data-id');
+    } else if (act === 'card-show') {
+      cardShown = !cardShown;
+      render();
+    } else if (act === 'card-next') {
+      cardIdx = (cardIdx + 1) % cards.length;
+      cardShown = false;
+      render();
+    } else if (act === 'card-shuffle') {
+      cards = buildCards();
+      cardIdx = 0;
+      cardShown = false;
+      toast('已重新洗牌');
+      render();
+    }
+  });
+
+  document.getElementById('btnCards').onclick = function () {
+    cards = buildCards(); cardIdx = 0; cardShown = false;
+    location.hash = '#/cards';
+  };
+  document.getElementById('btnHelp').onclick = function () { location.hash = '#/help'; };
+  document.getElementById('btnTheme').onclick = function () {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    save('pharm.theme', state.theme);
+    applyTheme();
+  };
+  document.getElementById('btnMenu').onclick = function () {
+    document.body.classList.toggle('nav-open');
+  };
+
+  searchInput.addEventListener('input', function () { renderSearchDropdown(this.value); });
+  searchInput.addEventListener('focus', function () { renderSearchDropdown(this.value); });
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { this.value = ''; searchResults.hidden = true; this.blur(); }
+    if (e.key === 'Enter') {
+      var first = searchResults.querySelector('.sr-item');
+      if (first) { location.hash = first.getAttribute('href'); searchResults.hidden = true; this.blur(); }
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault(); searchInput.focus();
+    }
+    if (parse().name === 'cards' && (e.key === 'ArrowRight' || e.key === ' ')) {
+      if (document.activeElement === searchInput) return;
+      e.preventDefault();
+      if (!cardShown && e.key === ' ') { cardShown = true; render(); return; }
+      cardIdx = (cardIdx + 1) % cards.length; cardShown = false; render();
+    }
+  });
+
+  window.addEventListener('hashchange', render);
+
+  /* ---------------- 启动 ---------------- */
+  render();
+})();
+
+</script>
+</body>
+</html>
